@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useConnectionsStore, Connection } from '../store/useConnectionsStore';
 import { Key, Plus, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '../store/useToastStore';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function IntegrationsPage() {
   const { connections, addConnection, deleteConnection } = useConnectionsStore();
   const [showAdd, setShowAdd] = useState(false);
+  const [connToDelete, setConnToDelete] = useState<string | null>(null);
   const toast = useToast();
 
   const [platform, setPlatform] = useState('twitter');
@@ -40,6 +42,14 @@ export default function IntegrationsPage() {
     setShowAdd(false);
     setApiKey('');
     setApiSecret('');
+  };
+
+  const confirmDelete = () => {
+    if (connToDelete) {
+      deleteConnection(connToDelete);
+      toast.info('Connection removed');
+      setConnToDelete(null);
+    }
   };
 
   return (
@@ -138,7 +148,7 @@ export default function IntegrationsPage() {
                 </div>
               </div>
               <button 
-                onClick={() => deleteConnection(conn.id)}
+                onClick={() => setConnToDelete(conn.id)}
                 style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '8px', borderRadius: '8px' }}
                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,68,68,0.1)'}
                 onMouseOut={(e) => e.currentTarget.style.background = 'none'}
@@ -153,6 +163,15 @@ export default function IntegrationsPage() {
           </div>
         ))}
       </div>
+
+      <ConfirmModal
+        isOpen={!!connToDelete}
+        title="Delete Connection"
+        message="Are you sure you want to remove this connection? Workflows relying on this connection will fail."
+        confirmText="Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => setConnToDelete(null)}
+      />
     </div>
   );
 }

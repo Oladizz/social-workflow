@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Activity, Clock, Trash2, Edit2 } from 'lucide-react';
 import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
+import ConfirmModal from '../components/ConfirmModal';
 import '../index.css';
 
 export default function WorkflowsPage() {
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [wfToDelete, setWfToDelete] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,12 +45,18 @@ export default function WorkflowsPage() {
 
   const deleteWorkflow = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (confirm('Are you sure you want to delete this workflow?')) {
+    setWfToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (wfToDelete) {
       try {
-        await deleteDoc(doc(db, 'workflows', id));
-        setWorkflows(workflows.filter(w => w.id !== id));
+        await deleteDoc(doc(db, 'workflows', wfToDelete));
+        setWorkflows(workflows.filter(w => w.id !== wfToDelete));
       } catch (error) {
         console.error('Error deleting workflow:', error);
+      } finally {
+        setWfToDelete(null);
       }
     }
   };
@@ -123,6 +131,15 @@ export default function WorkflowsPage() {
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!wfToDelete}
+        title="Delete Workflow"
+        message="Are you sure you want to delete this workflow? This action cannot be undone."
+        confirmText="Delete Workflow"
+        onConfirm={confirmDelete}
+        onCancel={() => setWfToDelete(null)}
+      />
     </div>
   );
 }
