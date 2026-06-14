@@ -244,8 +244,8 @@ export default function App({ isDebugMode = false }: { isDebugMode?: boolean }) 
               stepType: node.type || '',
               stepLabel: (node.data.platform as string) || (node.data.triggerType as string) || node.type || 'step',
               status,
-              output,
-              error,
+              output: output ?? null,
+              error: error ?? null,
               durationMs: 500 // In a real app we'd calculate this
             });
           }

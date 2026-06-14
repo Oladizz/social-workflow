@@ -47,25 +47,25 @@ export async function executeWorkflow(
             password: password
           };
 
-          if (action === 'post_tweet') {
+          if (action === 'tweet' || action === 'post') {
             endpoint = '/api/twitter/post';
-            payload.text = inputData.content || 'Hello from Social Workflow!';
-          } else if (action === 'reply_tweet') {
+            payload.text = inputData.content || node.data.message || 'Hello from Social Workflow!';
+          } else if (action === 'reply') {
             endpoint = '/api/twitter/reply';
-            payload.tweet_id = inputData.tweet_id;
-            payload.text = inputData.content;
-          } else if (action === 'like_tweet') {
+            payload.tweet_id = inputData.tweet_id || node.data.message;
+            payload.text = inputData.content || node.data.message;
+          } else if (action === 'like') {
             endpoint = '/api/twitter/like';
-            payload.tweet_id = inputData.tweet_id;
+            payload.tweet_id = inputData.tweet_id || node.data.message;
           } else if (action === 'retweet') {
             endpoint = '/api/twitter/retweet';
-            payload.tweet_id = inputData.tweet_id;
-          } else if (action === 'send_dm') {
+            payload.tweet_id = inputData.tweet_id || node.data.message;
+          } else if (action === 'dm') {
             endpoint = '/api/twitter/dm';
-            payload.target_username = inputData.username;
-            payload.text = inputData.content;
+            payload.target_username = inputData.username || node.data.message;
+            payload.text = inputData.content || node.data.message;
           } else {
-             throw new Error('Unsupported Twitter action');
+             throw new Error(`Unsupported Twitter action: ${action}`);
           }
 
           const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
@@ -99,7 +99,7 @@ export async function executeWorkflow(
       error = err.message || 'Execution failed';
     }
 
-    onStepComplete(node.id, status, output, error);
+    onStepComplete(node.id, status, output ?? null, error ?? null);
 
     if (status === 'error') {
       break; // Stop execution on error
