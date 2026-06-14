@@ -1,13 +1,27 @@
 import React from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutGrid, Activity, User } from 'lucide-react';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { LayoutGrid, Activity, User, LogOut } from 'lucide-react';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
 import '../index.css';
 
 export default function DashboardLayout() {
+  const navigate = useNavigate();
   const navItems = [
     { name: 'Workflows', path: '/dashboard', icon: LayoutGrid },
     { name: 'Runs', path: '/runs', icon: Activity },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to log out', error);
+    }
+  };
+
+  const currentUser = auth.currentUser;
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#0a0a0f', color: 'white' }}>
@@ -46,7 +60,7 @@ export default function DashboardLayout() {
                 transition: 'all 0.2s ease'
               })}
             >
-              <item.icon size={18} color={/* isActive logic handled via CSS classes or just relying on inherit */ 'inherit'} />
+              <item.icon size={18} color={'inherit'} />
               {item.name}
             </NavLink>
           ))}
@@ -62,12 +76,29 @@ export default function DashboardLayout() {
           background: 'rgba(255,255,255,0.03)'
         }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <User size={16} />
+            {currentUser?.photoURL ? (
+              <img src={currentUser.photoURL} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
+            ) : (
+              <User size={16} />
+            )}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Demo User</span>
-            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>Free Plan</span>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User'}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              {currentUser?.email || 'Free Plan'}
+            </span>
           </div>
+          <button 
+            onClick={handleLogout}
+            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}
+            onMouseOver={(e) => e.currentTarget.style.color = '#fff'}
+            onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+            title="Log out"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </aside>
 

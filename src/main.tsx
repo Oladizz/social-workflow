@@ -5,14 +5,25 @@ import App from './App.tsx';
 import DashboardLayout from './layouts/DashboardLayout.tsx';
 import WorkflowsPage from './pages/WorkflowsPage.tsx';
 import RunsPage from './pages/RunsPage.tsx';
+import LoginPage from './pages/LoginPage.tsx';
+import ProtectedRoute from './components/ProtectedRoute.tsx';
 import ErrorFallback from './components/ErrorFallback.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
 
 const router = createBrowserRouter([
   {
+    path: '/login',
+    element: <LoginPage />,
+    errorElement: <ErrorFallback />,
+  },
+  {
     path: '/',
-    element: <DashboardLayout />,
+    element: (
+      <ProtectedRoute>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
     errorElement: <ErrorFallback />,
     children: [
       {
@@ -31,12 +42,20 @@ const router = createBrowserRouter([
   },
   {
     path: '/flows/:id',
-    element: <App />,
+    element: (
+      <ProtectedRoute>
+        <App />
+      </ProtectedRoute>
+    ),
     errorElement: <ErrorFallback />,
   },
   {
     path: '/runs/:id',
-    element: <App isDebugMode={true} />,
+    element: (
+      <ProtectedRoute>
+        <App isDebugMode={true} />
+      </ProtectedRoute>
+    ),
     errorElement: <ErrorFallback />,
   }
 ]);
