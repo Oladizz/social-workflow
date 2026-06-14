@@ -69,15 +69,33 @@ export async function executeWorkflow(
           }
 
           const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-          const response = await fetch(`${backendUrl}${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+          let response;
+          try {
+            response = await fetch(`${backendUrl}${endpoint}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+          } catch (e: any) {
+            throw new Error(`Network error connecting to backend: ${e.message}`);
+          }
 
-          const data = await response.json();
+          let data;
+          const textResponse = await response.text();
+          try {
+            data = JSON.parse(textResponse);
+          } catch (e) {
+            throw new Error(`Server returned non-JSON response (${response.status}): ${textResponse.slice(0, 150)}...`);
+          }
+
           if (!response.ok) {
-            throw new Error(data.detail || 'Failed to execute Twitter action');
+            let errorMsg = 'Failed to execute Twitter action';
+            if (data.detail) {
+              errorMsg = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
+            } else if (data.message) {
+              errorMsg = data.message;
+            }
+            throw new Error(`Backend Error (${response.status}): ${errorMsg}`);
           }
           output = data;
         } else {
