@@ -1,15 +1,16 @@
 import React, { useMemo } from 'react';
 import { useWorkflowStore } from '../store/useWorkflowStore';
+import { useConnectionsStore } from '../store/useConnectionsStore';
 import { AlertTriangle, CheckCircle, X } from 'lucide-react';
 import { getPlatformById } from '../data/platforms';
 
 export default function ValidationBanner() {
   const { nodes, edges } = useWorkflowStore();
+  const { connections } = useConnectionsStore();
 
   const issues = useMemo(() => {
     const problems: string[] = [];
     const hasTrigger = nodes.some(n => n.type === 'triggerNode');
-    const hasActions = nodes.some(n => n.type === 'actionNode' || n.type === 'aiNode');
 
     if (!hasTrigger) problems.push('No trigger node — add a trigger to start the flow.');
     if (nodes.length > 1 && edges.length === 0) problems.push('Nodes are not connected — drag from a node handle to connect them.');
@@ -17,17 +18,25 @@ export default function ValidationBanner() {
     nodes.forEach(n => {
       if (n.type === 'actionNode') {
         const platform = getPlatformById(n.data.platform as string);
-        if (!n.data.apiKey) {
-          problems.push(`${platform?.name || n.data.platform}: API key is missing in settings.`);
+        const hasConnection = connections.some(c => c.platformId === n.data.platform);
+        if (!hasConnection) {
+          problems.push(`${platform?.name || n.data.platform}: Missing connection. Please add it in the Integrations page.`);
         }
       }
       if (n.type === 'aiNode' && !n.data.apiKey) {
-        problems.push('Gemini AI: API key is missing in settings.');
+        // We still require apiKey locally for AI nodes for now, unless we move AI to global connections too.
+        // Wait, AI nodes are in integrations page too! gemini, openai, anthropic.
+        // Let's check global connections for AI as well!
+        const provider = (n.data.provider as string) || (n.data.model?.startsWith('gpt') ? 'openai' : n.data.model?.startsWith('claude') ? 'anthropic' : 'gemini');
+        const hasAiConnection = connections.some(c => c.platformId === provider);
+        if (!hasAiConnection && !n.data.apiKey) {
+           problems.push(`AI Provider (${provider}): Missing API key in Integrations page.`);
+        }
       }
     });
 
     return problems;
-  }, [nodes, edges]);
+  }, [nodes, edges, connections]);
 
   const isValid = issues.length === 0 && nodes.length > 1;
 
