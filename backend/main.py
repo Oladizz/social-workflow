@@ -7,49 +7,106 @@ import os
 
 app = FastAPI(title="Social Workflow Backend", description="FastAPI Backend for Twikit and Automations")
 
-# Configure CORS so the React app can talk to this backend
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For production, specify your frontend domain
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class TweetRequest(BaseModel):
+# Shared Base Model for Authentication
+class TwitterAuthBase(BaseModel):
     username: str
     email: str
     password: str
+
+class TweetRequest(TwitterAuthBase):
     text: str
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to Social Workflow Backend! API is running."}
+class ReplyRequest(TwitterAuthBase):
+    tweet_id: str
+    text: str
 
-@app.post("/api/twitter/post")
-async def post_tweet(req: TweetRequest):
+class ActionRequest(TwitterAuthBase):
+    tweet_id: str
+
+class DMRequest(TwitterAuthBase):
+    target_username: str
+    text: str
+
+async def get_authenticated_client(req: TwitterAuthBase) -> Client:
+    """Helper function to authenticate and return a Twikit client."""
+    client = Client('en-US')
     try:
-        # Initialize Twikit Client
-        client = Client('en-US')
-        
-        # In a production app, we should save/load cookies to avoid logging in every time
-        # For MVP, we will attempt login. Twitter might block repeated logins, 
-        # so using cookies is highly recommended later.
         await client.login(
             auth_info_1=req.username,
             auth_info_2=req.email,
             password=req.password
         )
+        return client
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
 
-        # Post the tweet
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to Social Workflow Backend! Twikit API is running."}
+
+
+@app.post("/api/twitter/post")
+async def post_tweet(req: TweetRequest):
+    try:
+        client = await get_authenticated_client(req)
         tweet = await client.create_tweet(text=req.text)
-
-        return {
-            "success": True, 
-            "message": "Tweet posted successfully!", 
-            "tweet_id": tweet.id
-        }
+        return {"success": True, "message": "Tweet posted successfully!", "tweet_id": tweet.id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Note: You can add more endpoints here (e.g. reply to tweet, scrape tweets, etc.)
+
+@app.post("/api/twitter/reply")
+async def reply_tweet(req: ReplyRequest):
+    try:
+        client = await get_authenticated_client(req)
+        tweet = await client.create_tweet(text=req.text, reply_to=req.tweet_id)
+        return {"success": True, "message": "Replied to tweet successfully!", "tweet_id": tweet.id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/twitter/like")
+async def like_tweet(req: ActionRequest):
+    try:
+        client = await get_authenticated_client(req)
+        await client.favorite_tweet(req.tweet_id)
+        return {"success": True, "message": f"Successfully liked tweet {req.tweet_id}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/twitter/retweet")
+async def retweet(req: ActionRequest):
+    try:
+        client = await get_authenticated_client(req)
+        await client.retweet(req.tweet_id)
+        return {"success": True, "message": f"Successfully retweeted {req.tweet_id}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/twitter/dm")
+async def send_direct_message(req: DMRequest):
+    try:
+        client = await get_authenticated_client(req)
+        # First we need to get the user ID of the target username
+        users = await client.search_user(req.target_username)
+        if not users:
+            raise HTTPException(status_code=404, detail="Target user not found")
+        
+        target_user_id = users[0].id
+        await client.send_dm(target_user_id, req.text)
+        
+        return {"success": True, "message": f"DM sent successfully to @{req.target_username}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
