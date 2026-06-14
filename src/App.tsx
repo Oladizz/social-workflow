@@ -212,22 +212,62 @@ export default function App({ isDebugMode = false }: { isDebugMode?: boolean }) 
   const onDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }, []);
   const onNodeContextMenu: NodeMouseHandler = useCallback((event, node) => { event.preventDefault(); setContextMenu({ nodeId: node.id, x: event.clientX, y: event.clientY }); }, []);
 
-  const handleRun = () => {
+  const handleRun = async () => {
     const runId = startRun(useWorkflowStore.getState().workflowName);
-    toast.info('Workflow queued for execution…');
+    toast.info('Workflow started...');
     setShowExecLog(true);
-    // Simulate execution for demo
-    setTimeout(() => {
-      nodes.forEach((n, i) => {
-        setTimeout(() => {
-          useExecutionStore.getState().updateStep(runId, {
-            stepId: n.id, stepType: n.type || '', stepLabel: (n.data.platform as string) || (n.data.triggerType as string) || n.type || 'step',
-            status: 'success', output: { result: 'OK', nodeId: n.id }, durationMs: Math.floor(Math.random() * 800 + 100)
-          });
-        }, i * 600);
-      });
-      setTimeout(() => { finishRun(runId, 'success'); toast.success('Workflow completed successfully!'); }, nodes.length * 600 + 300);
-    }, 300);
+
+    const { executeWorkflow } = await import('./utils/executor');
+
+    try {
+      await executeWorkflow(
+        runId,
+        nodes,
+        edges,
+        (stepId) => {
+          const node = nodes.find(n => n.id === stepId);
+          if (node) {
+            useExecutionStore.getState().updateStep(runId, {
+              stepId: node.id,
+              stepType: node.type || '',
+              stepLabel: (node.data.platform as string) || (node.data.triggerType as string) || node.type || 'step',
+              status: 'running',
+              durationMs: 0
+            });
+          }
+        },
+        (stepId, status, output, error) => {
+          const node = nodes.find(n => n.id === stepId);
+          if (node) {
+            useExecutionStore.getState().updateStep(runId, {
+              stepId: node.id,
+              stepType: node.type || '',
+              stepLabel: (node.data.platform as string) || (node.data.triggerType as string) || node.type || 'step',
+              status,
+              output,
+              error,
+              durationMs: 500 // In a real app we'd calculate this
+            });
+          }
+        }
+      );
+
+      // Check if any step failed
+      const run = useExecutionStore.getState().runs.find(r => r.id === runId);
+      const hasError = run?.steps.some(s => s.status === 'error');
+
+      if (hasError) {
+        useExecutionStore.getState().finishRun(runId, 'error');
+        toast.error('Workflow failed!');
+      } else {
+        useExecutionStore.getState().finishRun(runId, 'success');
+        toast.success('Workflow completed successfully!');
+      }
+
+    } catch (err: any) {
+      toast.error(`Execution Error: ${err.message}`);
+      useExecutionStore.getState().finishRun(runId, 'error');
+    }
   };
 
   const handleWelcome = (openTemplates: boolean) => {
