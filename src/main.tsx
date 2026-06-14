@@ -5,6 +5,7 @@ import App from './App.tsx';
 import DashboardLayout from './layouts/DashboardLayout.tsx';
 import WorkflowsPage from './pages/WorkflowsPage.tsx';
 import RunsPage from './pages/RunsPage.tsx';
+import IntegrationsPage from './pages/IntegrationsPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import LandingPage from './pages/LandingPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
@@ -46,6 +47,10 @@ const router = createBrowserRouter([
       {
         path: 'runs',
         element: <RunsPage />,
+      },
+      {
+        path: 'integrations',
+        element: <IntegrationsPage />,
       },
     ],
   },
