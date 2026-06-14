@@ -5,10 +5,10 @@ import { Zap, ArrowRight, Activity, Workflow, Shield, Globe } from 'lucide-react
 
 export default function LandingPage() {
   useSEO({
-    title: 'Social Workflow | Automate Your Digital Life',
+    title: 'Cirlo | Automate Your Digital Life',
     description: 'The ultimate workflow automation tool. Connect apps, build complex logic visually, and run tasks efficiently in the cloud. Save time and focus on what matters.',
     keywords: 'workflow automation, task automation, no-code, cloud workflows, productivity, connect apps',
-    ogUrl: 'https://socialworkflow.app'
+    ogUrl: 'https://cirlo.app'
   });
 
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ export default function LandingPage() {
           <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #8a2be2, #06b6d4)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Zap size={20} color="#fff" />
           </div>
-          <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '0.5px' }}>SocialFlow</span>
+          <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '0.5px' }}>Cirlo</span>
         </div>
         <nav aria-label="Main Navigation">
           <ul style={{ display: 'flex', gap: '32px', listStyle: 'none', margin: 0, padding: 0, alignItems: 'center' }}>
@@ -72,20 +72,23 @@ export default function LandingPage() {
       {/* Hero Section */}
       <main>
         <section id="hero-section" style={{
-          padding: '120px 24px',
-          textAlign: 'center',
+          padding: '100px 48px',
           position: 'relative',
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          minHeight: '80vh'
+          gap: '60px',
+          minHeight: '85vh',
+          maxWidth: '1400px',
+          margin: '0 auto',
+          flexWrap: 'wrap'
         }}>
           {/* Ambient Backgrounds */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '40vw', height: '40vw', background: 'radial-gradient(circle, rgba(138, 43, 226, 0.15) 0%, transparent 70%)', filter: 'blur(60px)', zIndex: 0, animation: 'pulse 8s infinite alternate' }} />
           <div style={{ position: 'absolute', bottom: '10%', right: '20%', width: '35vw', height: '35vw', background: 'radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%)', filter: 'blur(60px)', zIndex: 0, animation: 'pulse 6s infinite alternate-reverse' }} />
 
-          <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px' }}>
+          {/* Left Text Content */}
+          <div style={{ position: 'relative', zIndex: 1, flex: '1 1 500px', maxWidth: '600px' }}>
             <span style={{ display: 'inline-block', padding: '6px 16px', background: 'rgba(138, 43, 226, 0.2)', color: '#d8b4fe', borderRadius: '24px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '24px', border: '1px solid rgba(138, 43, 226, 0.3)' }}>
               ✨ The New Standard for Automation
             </span>
@@ -101,10 +104,10 @@ export default function LandingPage() {
             }}>
               Automate the Impossible
             </h1>
-            <p style={{ fontSize: '1.25rem', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '48px', lineHeight: 1.6, maxWidth: '600px', margin: '0 auto 48px' }}>
-              Connect your favorite apps, design intelligent workflows visually, and let SocialFlow handle the repetitive tasks while you focus on creativity.
+            <p style={{ fontSize: '1.25rem', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '48px', lineHeight: 1.6 }}>
+              Connect your favorite apps, design intelligent workflows visually, and let Cirlo handle the repetitive tasks while you focus on creativity.
             </p>
-            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '20px' }}>
               <button
                 id="btn-hero-cta"
                 onClick={() => navigate('/dashboard')}
@@ -129,6 +132,25 @@ export default function LandingPage() {
                 Start Building Free <ArrowRight size={20} />
               </button>
             </div>
+          </div>
+
+          {/* Right 3D Visual */}
+          <div style={{ position: 'relative', zIndex: 1, flex: '1 1 500px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+             <img 
+               src="/hero-3d.jpg" 
+               alt="Cirlo 3D Node Builder Illustration" 
+               style={{
+                 width: '100%',
+                 maxWidth: '650px',
+                 height: 'auto',
+                 borderRadius: '24px',
+                 boxShadow: '0 25px 60px rgba(6, 182, 212, 0.3), 0 0 0 1px rgba(255,255,255,0.1)',
+                 transform: 'perspective(1000px) rotateY(-5deg) rotateX(5deg)',
+                 transition: 'transform 0.5s ease',
+               }}
+               onMouseOver={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateY(0deg) rotateX(0deg)'; }}
+               onMouseOut={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateY(-5deg) rotateX(5deg)'; }}
+             />
           </div>
         </section>
 
@@ -174,9 +196,9 @@ export default function LandingPage() {
       <footer id="landing-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '48px 24px', textAlign: 'center', background: 'var(--bg-dark)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '24px' }}>
           <Zap size={24} color="#8a2be2" />
-          <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>SocialFlow</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>Cirlo</span>
         </div>
-        <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0 }}>© {new Date().getFullYear()} SocialFlow. Built for efficiency.</p>
+        <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0 }}>© {new Date().getFullYear()} Cirlo. Built for efficiency.</p>
       </footer>
     </div>
   );
