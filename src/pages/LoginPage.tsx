@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebase';
-import { LogIn, UserPlus, Mail, Lock, ArrowRight, Zap } from 'lucide-react';
+import { LogIn, UserPlus, Mail, Lock, ArrowRight, Zap, RefreshCw } from 'lucide-react';
 import { useToast } from '../store/useToastStore';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const [isResetMode, setIsResetMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,14 +18,19 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isLogin) {
+      if (isResetMode) {
+        await sendPasswordResetEmail(auth, email);
+        toast.success('Password reset email sent! Please check your inbox.');
+        setIsResetMode(false);
+      } else if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
         toast.success('Successfully logged in!');
+        navigate('/dashboard');
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
         toast.success('Account created successfully!');
+        navigate('/dashboard');
       }
-      navigate('/dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Authentication failed');
     } finally {
@@ -108,7 +114,7 @@ export default function LoginPage() {
             Social Workflow
           </h1>
           <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.95rem', margin: 0 }}>
-            {isLogin ? 'Welcome back! Please enter your details.' : 'Create an account to get started.'}
+            {isResetMode ? 'Enter your email to receive a password reset link.' : (isLogin ? 'Welcome back! Please enter your details.' : 'Create an account to get started.')}
           </p>
         </div>
 
@@ -141,33 +147,48 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '8px', fontWeight: 500 }}>Password</label>
-            <div style={{ position: 'relative' }}>
-              <Lock size={18} color="rgba(255, 255, 255, 0.4)" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-                style={{
-                  width: '100%',
-                  padding: '12px 16px 12px 42px',
-                  background: 'rgba(0, 0, 0, 0.2)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '12px',
-                  color: '#fff',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  transition: 'all 0.2s',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#8a2be2'}
-                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
-              />
+          {!isResetMode && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Password</label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => setIsResetMode(true)}
+                    style={{ background: 'none', border: 'none', color: '#a78bfa', fontSize: '0.8rem', cursor: 'pointer', padding: 0 }}
+                    onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                    onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
+                  >
+                    Forgot Password?
+                  </button>
+                )}
+              </div>
+              <div style={{ position: 'relative' }}>
+                <Lock size={18} color="rgba(255, 255, 255, 0.4)" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px 12px 42px',
+                    background: 'rgba(0, 0, 0, 0.2)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#8a2be2'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <button
             type="submit"
@@ -194,68 +215,83 @@ export default function LoginPage() {
             onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             onMouseDown={(e) => e.currentTarget.style.transform = 'translateY(1px)'}
           >
-            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+            {loading ? 'Processing...' : (isResetMode ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Account'))}
             {!loading && <ArrowRight size={18} />}
           </button>
         </form>
 
-        <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
-          <span style={{ padding: '0 12px', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>or</span>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
-        </div>
+        {!isResetMode && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+              <span style={{ padding: '0 12px', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>or</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+            </div>
 
-        <button
-          onClick={handleGoogleLogin}
-          style={{
-            width: '100%',
-            padding: '12px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            color: '#fff',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '12px',
-            fontSize: '0.95rem',
-            fontWeight: 500,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            transition: 'background 0.2s'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          Continue with Google
-        </button>
+            <button
+              onClick={handleGoogleLogin}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: '#fff',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '12px',
+                fontSize: '0.95rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                transition: 'background 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              Continue with Google
+            </button>
+          </>
+        )}
 
         <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.9rem' }}>
-          <span style={{ color: 'rgba(255,255,255,0.5)' }}>
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-          </span>
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#a78bfa',
-              fontWeight: 600,
-              cursor: 'pointer',
-              padding: 0,
-              fontFamily: 'inherit',
-              textDecoration: 'none'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
-            onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
-          >
-            {isLogin ? 'Sign up' : 'Log in'}
-          </button>
+          {isResetMode ? (
+            <button
+              onClick={() => setIsResetMode(false)}
+              style={{ background: 'none', border: 'none', color: '#a78bfa', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+            >
+              Back to Login
+            </button>
+          ) : (
+            <>
+              <span style={{ color: 'rgba(255,255,255,0.5)' }}>
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+              </span>
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#a78bfa',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontFamily: 'inherit',
+                  textDecoration: 'none'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
+              >
+                {isLogin ? 'Sign up' : 'Log in'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

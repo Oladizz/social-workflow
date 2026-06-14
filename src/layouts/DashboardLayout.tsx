@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Activity, User, LogOut, Plug } from 'lucide-react';
+import { LayoutGrid, Activity, User, LogOut, Plug, Settings } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import '../index.css';
@@ -11,6 +11,7 @@ export default function DashboardLayout() {
     { name: 'Workflows', path: '/dashboard', icon: LayoutGrid },
     { name: 'Runs', path: '/runs', icon: Activity },
     { name: 'Integrations', path: '/integrations', icon: Plug },
+    { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
   const handleLogout = async () => {
