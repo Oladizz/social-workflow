@@ -6,6 +6,9 @@ import DashboardLayout from './layouts/DashboardLayout.tsx';
 import WorkflowsPage from './pages/WorkflowsPage.tsx';
 import RunsPage from './pages/RunsPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
+import LandingPage from './pages/LandingPage.tsx';
+import NotFoundPage from './pages/NotFoundPage.tsx';
+import MaintenancePage from './pages/MaintenancePage.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 import ErrorFallback from './components/ErrorFallback.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
@@ -13,8 +16,18 @@ import './index.css';
 
 const router = createBrowserRouter([
   {
+    path: '/',
+    element: <LandingPage />,
+    errorElement: <ErrorFallback />,
+  },
+  {
     path: '/login',
     element: <LoginPage />,
+    errorElement: <ErrorFallback />,
+  },
+  {
+    path: '/maintenance',
+    element: <MaintenancePage />,
     errorElement: <ErrorFallback />,
   },
   {
@@ -26,10 +39,6 @@ const router = createBrowserRouter([
     ),
     errorElement: <ErrorFallback />,
     children: [
-      {
-        path: '',
-        element: <Navigate to="/dashboard" replace />,
-      },
       {
         path: 'dashboard',
         element: <WorkflowsPage />,
@@ -57,6 +66,10 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     errorElement: <ErrorFallback />,
+  },
+  {
+    path: '*',
+    element: <NotFoundPage />,
   }
 ]);
 
