@@ -301,6 +301,12 @@ export default function PropertiesSidebar({ isDebugMode = false }: { isDebugMode
           </div>
         </div>
 
+        {/* Auth */}
+        <div style={{ marginBottom: '20px' }}>
+          <SectionHeader icon={Key} label="Authentication" />
+          <Input label={apiKeyLabel} type="password" placeholder={apiKeyPlaceholder} value={data.apiKey} onChange={(v: string) => handle('apiKey', v)} />
+        </div>
+
         {/* AI Task Type */}
         <div style={{ marginBottom: '20px' }}>
           <SectionHeader icon={Sparkles} label="AI Task" />
@@ -414,6 +420,12 @@ export default function PropertiesSidebar({ isDebugMode = false }: { isDebugMode
             <p style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>{platform.name}</p>
             <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Configure action below</p>
           </div>
+        </div>
+
+        {/* Auth */}
+        <div style={{ marginBottom: '20px' }}>
+          <SectionHeader icon={Key} label="Authentication" />
+          <Input label="API Key / Access Token" type="password" placeholder="Paste your token..." value={data.apiKey} onChange={(v: string) => handle('apiKey', v)} />
         </div>
 
         {/* Action selector */}
@@ -681,6 +693,14 @@ export default function PropertiesSidebar({ isDebugMode = false }: { isDebugMode
             <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>RAG & Data Extraction</p>
           </div>
         </div>
+
+        {/* Auth (if needed for Gemini embeddings) */}
+        {(actionType === 'upsert_to_vector_db' || actionType === 'search_vector_db') && (
+          <div style={{ marginBottom: '20px' }}>
+            <SectionHeader icon={Key} label="Authentication (Gemini Embeddings)" />
+            <Input label="Gemini API Key" type="password" placeholder="AIzaSy..." value={data.apiKey} onChange={(v: string) => handle('apiKey', v)} />
+          </div>
+        )}
 
         {/* Action Specific Fields */}
         {actionType === 'scrape_url' && (
