@@ -109,24 +109,24 @@ export default function IntegrationsPage() {
                   </p>
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>API Key</label>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>API Key (Consumer Key)</label>
                   <input
                     type="password"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
                     required
-                    placeholder="Enter API Key"
+                    placeholder="Enter API / Consumer Key"
                     style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff', fontSize: '1rem', outline: 'none' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>API Secret</label>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>API Secret (Consumer Secret)</label>
                   <input
                     type="password"
                     value={apiSecret}
                     onChange={(e) => setApiSecret(e.target.value)}
                     required
-                    placeholder="Enter API Secret"
+                    placeholder="Enter API / Consumer Secret"
                     style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff', fontSize: '1rem', outline: 'none' }}
                   />
                 </div>
