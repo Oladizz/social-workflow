@@ -38,10 +38,7 @@ export async function executeWorkflow(
             throw new Error('No Twitter connection found. Please add one in Integrations.');
           }
 
-          // In this demo, we expect the credentials to contain email, username, and password
-          const { apiKey: username, apiSecret: password } = connection.credentials;
-          // Note: for this MVP we reuse apiSecret for password. Ideally we'd have explicit fields.
-          const email = username; // Placeholder. Usually twikit needs all three.
+          const { apiKey: username, apiSecret: password, twitterEmail: email } = connection.credentials;
           
           let endpoint = '';
           let payload: any = {
