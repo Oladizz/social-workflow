@@ -28,7 +28,7 @@ export async function executeWorkflow(
     try {
       if (node.type === 'actionNode') {
         const platform = node.data.platform;
-        const action = node.data.selectedAction;
+        const action = node.data.selectedAction || 'post'; // Default to post if not set
         const inputData = node.data.actionInput || {};
 
         if (platform === 'twitter') {
