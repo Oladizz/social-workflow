@@ -1,11 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from twikit import Client
-import asyncio
-import os
+import tweepy
 
-app = FastAPI(title="Social Workflow Backend", description="FastAPI Backend for Twikit and Automations")
+app = FastAPI(title="Social Workflow Backend", description="FastAPI Backend for Twitter API v2 (Tweepy)")
 
 # Configure CORS
 app.add_middleware(
@@ -16,11 +14,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Shared Base Model for Authentication
+# Shared Base Model for Authentication (Official API)
 class TwitterAuthBase(BaseModel):
-    username: str
-    email: str
-    password: str
+    api_key: str
+    api_secret: str
+    access_token: str
+    access_token_secret: str
 
 class TweetRequest(TwitterAuthBase):
     text: str
@@ -36,100 +35,107 @@ class DMRequest(TwitterAuthBase):
     target_username: str
     text: str
 
-async def get_authenticated_client(req: TwitterAuthBase) -> Client:
-    """Helper function to authenticate and return a Twikit client."""
-    client = Client('en-US')
+def get_authenticated_client(req: TwitterAuthBase) -> tweepy.Client:
+    """Helper function to authenticate and return a Tweepy client."""
     try:
-        await client.login(
-            auth_info_1=req.username,
-            auth_info_2=req.email,
-            password=req.password
+        client = tweepy.Client(
+            consumer_key=req.api_key,
+            consumer_secret=req.api_secret,
+            access_token=req.access_token,
+            access_token_secret=req.access_token_secret,
+            wait_on_rate_limit=True
         )
         return client
     except Exception as e:
-        error_str = str(e).lower()
-        if 'cloudflare' in error_str or 'blocked' in error_str or 'cookie' in error_str or '403' in error_str:
-            # Raise a specific exception so endpoints know to simulate
-            raise ValueError("CLOUDFLARE_BLOCK")
-        raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
+        raise HTTPException(status_code=401, detail=f"Authentication setup failed: {str(e)}")
 
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to Social Workflow Backend! Twikit API is running."}
+    return {"message": "Welcome to Social Workflow Backend! Tweepy API is running."}
 
 
 @app.post("/api/twitter/post")
-async def post_tweet(req: TweetRequest):
+def post_tweet(req: TweetRequest):
     try:
-        client = await get_authenticated_client(req)
-        tweet = await client.create_tweet(text=req.text)
-        return {"success": True, "message": "Tweet posted successfully!", "tweet_id": tweet.id}
-    except ValueError as e:
-        if str(e) == "CLOUDFLARE_BLOCK":
-            return {"success": True, "message": "Simulated Post (Cloudflare Blocked): " + req.text, "tweet_id": "simulated_123"}
-        raise
+        client = get_authenticated_client(req)
+        response = client.create_tweet(text=req.text)
+        if response.data:
+            return {"success": True, "message": "Tweet posted successfully!", "tweet_id": response.data['id']}
+        raise Exception("Failed to create tweet - no data returned")
+    except tweepy.errors.TweepyException as e:
+        raise HTTPException(status_code=400, detail=f"Twitter API Error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/twitter/reply")
-async def reply_tweet(req: ReplyRequest):
+def reply_tweet(req: ReplyRequest):
     try:
-        client = await get_authenticated_client(req)
-        tweet = await client.create_tweet(text=req.text, reply_to=req.tweet_id)
-        return {"success": True, "message": "Replied to tweet successfully!", "tweet_id": tweet.id}
-    except ValueError as e:
-        if str(e) == "CLOUDFLARE_BLOCK":
-            return {"success": True, "message": f"Simulated Reply to {req.tweet_id} (Cloudflare Blocked)", "tweet_id": "simulated_456"}
-        raise
+        client = get_authenticated_client(req)
+        response = client.create_tweet(text=req.text, in_reply_to_tweet_id=req.tweet_id)
+        if response.data:
+            return {"success": True, "message": "Replied to tweet successfully!", "tweet_id": response.data['id']}
+        raise Exception("Failed to reply - no data returned")
+    except tweepy.errors.TweepyException as e:
+        raise HTTPException(status_code=400, detail=f"Twitter API Error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/twitter/like")
-async def like_tweet(req: ActionRequest):
+def like_tweet(req: ActionRequest):
     try:
-        client = await get_authenticated_client(req)
-        await client.favorite_tweet(req.tweet_id)
+        client = get_authenticated_client(req)
+        # We need the user's ID to like a tweet. We can get it from get_me()
+        user_response = client.get_me()
+        if not user_response.data:
+            raise Exception("Could not fetch user ID for liking tweet")
+            
+        user_id = user_response.data.id
+        client.like(tweet_id=req.tweet_id, user_auth=True)
         return {"success": True, "message": f"Successfully liked tweet {req.tweet_id}"}
-    except ValueError as e:
-        if str(e) == "CLOUDFLARE_BLOCK":
-            return {"success": True, "message": f"Simulated Like for {req.tweet_id} (Cloudflare Blocked)"}
-        raise
+    except tweepy.errors.TweepyException as e:
+        raise HTTPException(status_code=400, detail=f"Twitter API Error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/twitter/retweet")
-async def retweet(req: ActionRequest):
+def retweet(req: ActionRequest):
     try:
-        client = await get_authenticated_client(req)
-        await client.retweet(req.tweet_id)
+        client = get_authenticated_client(req)
+        user_response = client.get_me()
+        if not user_response.data:
+            raise Exception("Could not fetch user ID for retweet")
+            
+        user_id = user_response.data.id
+        client.retweet(tweet_id=req.tweet_id, user_auth=True)
         return {"success": True, "message": f"Successfully retweeted {req.tweet_id}"}
-    except ValueError as e:
-        if str(e) == "CLOUDFLARE_BLOCK":
-            return {"success": True, "message": f"Simulated Retweet for {req.tweet_id} (Cloudflare Blocked)"}
-        raise
+    except tweepy.errors.TweepyException as e:
+        raise HTTPException(status_code=400, detail=f"Twitter API Error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/twitter/dm")
-async def send_direct_message(req: DMRequest):
+def send_direct_message(req: DMRequest):
+    # Note: Twitter API v2 Direct Messages endpoints are limited and usually require OAuth 2.0 or specific access.
+    # We will simulate it if it fails or throw a clear error.
     try:
-        client = await get_authenticated_client(req)
-        users = await client.search_user(req.target_username)
-        if not users:
+        client = get_authenticated_client(req)
+        
+        # Get target user ID
+        user_response = client.get_user(username=req.target_username)
+        if not user_response.data:
             raise HTTPException(status_code=404, detail="Target user not found")
+            
+        target_user_id = user_response.data.id
         
-        target_user_id = users[0].id
-        await client.send_dm(target_user_id, req.text)
-        
+        # Tweepy v2 create_direct_message is available
+        client.create_direct_message(participant_id=target_user_id, text=req.text)
         return {"success": True, "message": f"DM sent successfully to @{req.target_username}"}
-    except ValueError as e:
-        if str(e) == "CLOUDFLARE_BLOCK":
-            return {"success": True, "message": f"Simulated DM to @{req.target_username} (Cloudflare Blocked)"}
-        raise
+    except tweepy.errors.TweepyException as e:
+        raise HTTPException(status_code=400, detail=f"Twitter API Error (DMs require appropriate permissions): {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

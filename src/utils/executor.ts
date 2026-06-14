@@ -38,13 +38,14 @@ export async function executeWorkflow(
             throw new Error('No Twitter connection found. Please add one in Integrations.');
           }
 
-          const { apiKey: username, apiSecret: password, twitterEmail: email } = connection.credentials;
+          const { apiKey, apiSecret, twitterEmail, accessTokenSecret } = connection.credentials;
           
           let endpoint = '';
           let payload: any = {
-            username: username,
-            email: email,
-            password: password
+            api_key: apiKey,
+            api_secret: apiSecret,
+            access_token: twitterEmail,
+            access_token_secret: accessTokenSecret
           };
 
           if (action === 'tweet' || action === 'post') {

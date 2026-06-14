@@ -14,6 +14,7 @@ export default function IntegrationsPage() {
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [twitterEmail, setTwitterEmail] = useState('');
+  const [accessTokenSecret, setAccessTokenSecret] = useState('');
 
   const platforms = [
     { id: 'twitter', name: 'Twitter / X', auth: 'oauth' },
@@ -35,7 +36,7 @@ export default function IntegrationsPage() {
       platformId: platform,
       displayName: selectedPlatform?.name || platform,
       authType: (selectedPlatform?.auth as any) || 'apiKey',
-      credentials: { apiKey, apiSecret, twitterEmail },
+      credentials: { apiKey, apiSecret, twitterEmail, accessTokenSecret },
       isValid: true,
     });
 
@@ -44,6 +45,7 @@ export default function IntegrationsPage() {
     setApiKey('');
     setApiSecret('');
     setTwitterEmail('');
+    setAccessTokenSecret('');
   };
 
   const confirmDelete = () => {
@@ -103,39 +105,50 @@ export default function IntegrationsPage() {
               <>
                 <div style={{ padding: '12px', background: 'rgba(138,43,226,0.1)', border: '1px solid rgba(138,43,226,0.3)', borderRadius: '8px', marginBottom: '8px' }}>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: '#e9d5ff', lineHeight: 1.5 }}>
-                    <strong>Note:</strong> We use an advanced headless browser to automate Twitter. You do NOT need an official Twitter Developer API Key! Just enter your normal login details below.
+                    <strong>Note:</strong> You are now using the Official Twitter API. Please provide your Twitter Developer App credentials below.
                   </p>
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>Twitter Username (e.g. @oladizz)</label>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>API Key</label>
                   <input
-                    type="text"
+                    type="password"
                     value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value.replace('@', ''))}
+                    onChange={(e) => setApiKey(e.target.value)}
                     required
-                    placeholder="Enter Username"
+                    placeholder="Enter API Key"
                     style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff', fontSize: '1rem', outline: 'none' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>Twitter Account Email</label>
-                  <input
-                    type="email"
-                    value={twitterEmail}
-                    onChange={(e) => setTwitterEmail(e.target.value)}
-                    required
-                    placeholder="Enter Email Address"
-                    style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff', fontSize: '1rem', outline: 'none' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>Twitter Password</label>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>API Secret</label>
                   <input
                     type="password"
                     value={apiSecret}
                     onChange={(e) => setApiSecret(e.target.value)}
                     required
-                    placeholder="Enter Password"
+                    placeholder="Enter API Secret"
+                    style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff', fontSize: '1rem', outline: 'none' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>Access Token</label>
+                  <input
+                    type="password"
+                    value={twitterEmail} // reusing state variable for simplicity
+                    onChange={(e) => setTwitterEmail(e.target.value)}
+                    required
+                    placeholder="Enter Access Token"
+                    style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff', fontSize: '1rem', outline: 'none' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>Access Token Secret</label>
+                  <input
+                    type="password"
+                    value={accessTokenSecret}
+                    onChange={(e) => setAccessTokenSecret(e.target.value)}
+                    required
+                    placeholder="Enter Access Token Secret"
                     style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff', fontSize: '1rem', outline: 'none' }}
                   />
                 </div>
