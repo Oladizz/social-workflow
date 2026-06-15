@@ -8,7 +8,7 @@ export default function LandingPage() {
     title: 'Goocky | No-Code AI Social Media Automation',
     description: 'Goocky is the ultimate no-code AI social media automation platform. Visually build powerful, AI-driven workflows for Twitter, LinkedIn, and other channels to grow your audience effortlessly.',
     keywords: 'no-code AI social media automation, automated social media workflows, AI auto tweet, social media node builder, goocky',
-    ogUrl: 'https://goocky.app'
+    ogUrl: 'https://flow.oladizz.xyz/'
   });
 
   const navigate = useNavigate();

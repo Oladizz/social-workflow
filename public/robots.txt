@@ -8,4 +8,4 @@ Disallow: /integrations
 Disallow: /settings
 
 # Sitemap
-# Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://flow.oladizz.xyz/sitemap.xml
