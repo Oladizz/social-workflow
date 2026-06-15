@@ -5,9 +5,9 @@ import { Zap, ArrowRight, Activity, Workflow, Shield, Globe } from 'lucide-react
 
 export default function LandingPage() {
   useSEO({
-    title: 'Goocky | Automate Your Digital Life',
-    description: 'The ultimate workflow automation tool. Connect apps, build complex logic visually, and run tasks efficiently in the cloud. Save time and focus on what matters.',
-    keywords: 'workflow automation, task automation, no-code, cloud workflows, productivity, connect apps',
+    title: 'Goocky | No-Code AI Social Media Automation',
+    description: 'Goocky is the ultimate no-code AI social media automation platform. Visually build powerful, AI-driven workflows for Twitter, LinkedIn, and other channels to grow your audience effortlessly.',
+    keywords: 'no-code AI social media automation, automated social media workflows, AI auto tweet, social media node builder, goocky',
     ogUrl: 'https://goocky.app'
   });
 
@@ -102,10 +102,10 @@ export default function LandingPage() {
               WebkitTextFillColor: 'transparent',
               letterSpacing: '-0.02em'
             }}>
-              Automate the Impossible
+              No-Code AI Social Media Automation
             </h1>
             <p style={{ fontSize: '1.25rem', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '48px', lineHeight: 1.6 }}>
-              Connect your favorite apps, design intelligent workflows visually, and let Goocky handle the repetitive tasks while you focus on creativity.
+              Scale your online presence with Goocky's visual node builder. Create powerful no-code AI social media automation flows that generate and publish content for you around the clock.
             </p>
             <div style={{ display: 'flex', gap: '20px' }}>
               <button
