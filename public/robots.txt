@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /workflows
+Disallow: /runs
+Disallow: /integrations
+Disallow: /settings
+
+# Sitemap
+# Sitemap: https://yourdomain.com/sitemap.xml
