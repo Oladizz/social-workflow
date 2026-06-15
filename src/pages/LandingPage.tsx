@@ -5,10 +5,10 @@ import { Zap, ArrowRight, Activity, Workflow, Shield, Globe } from 'lucide-react
 
 export default function LandingPage() {
   useSEO({
-    title: 'Cirlo | Automate Your Digital Life',
+    title: 'Goocky | Automate Your Digital Life',
     description: 'The ultimate workflow automation tool. Connect apps, build complex logic visually, and run tasks efficiently in the cloud. Save time and focus on what matters.',
     keywords: 'workflow automation, task automation, no-code, cloud workflows, productivity, connect apps',
-    ogUrl: 'https://cirlo.app'
+    ogUrl: 'https://goocky.app'
   });
 
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ export default function LandingPage() {
           <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #8a2be2, #06b6d4)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Zap size={20} color="#fff" />
           </div>
-          <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '0.5px' }}>Cirlo</span>
+          <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '0.5px' }}>Goocky</span>
         </div>
         <nav aria-label="Main Navigation">
           <ul style={{ display: 'flex', gap: '32px', listStyle: 'none', margin: 0, padding: 0, alignItems: 'center' }}>
@@ -105,7 +105,7 @@ export default function LandingPage() {
               Automate the Impossible
             </h1>
             <p style={{ fontSize: '1.25rem', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '48px', lineHeight: 1.6 }}>
-              Connect your favorite apps, design intelligent workflows visually, and let Cirlo handle the repetitive tasks while you focus on creativity.
+              Connect your favorite apps, design intelligent workflows visually, and let Goocky handle the repetitive tasks while you focus on creativity.
             </p>
             <div style={{ display: 'flex', gap: '20px' }}>
               <button
@@ -134,23 +134,51 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Right 3D Visual */}
-          <div style={{ position: 'relative', zIndex: 1, flex: '1 1 500px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-             <img 
-               src="/hero-3d.jpg" 
-               alt="Cirlo 3D Node Builder Illustration" 
-               style={{
-                 width: '100%',
-                 maxWidth: '650px',
-                 height: 'auto',
-                 borderRadius: '24px',
-                 boxShadow: '0 25px 60px rgba(6, 182, 212, 0.3), 0 0 0 1px rgba(255,255,255,0.1)',
-                 transform: 'perspective(1000px) rotateY(-5deg) rotateX(5deg)',
-                 transition: 'transform 0.5s ease',
-               }}
-               onMouseOver={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateY(0deg) rotateX(0deg)'; }}
-               onMouseOut={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateY(-5deg) rotateX(5deg)'; }}
-             />
+          {/* Right 3D Visual with Motion Graphics Animation */}
+          <div style={{ position: 'relative', zIndex: 1, flex: '1 1 500px', display: 'flex', justifyContent: 'center', alignItems: 'center', perspective: '1200px' }}>
+            <style>
+              {`
+                @keyframes float3d {
+                  0% { transform: rotateY(-5deg) rotateX(5deg) translateY(0px); }
+                  50% { transform: rotateY(5deg) rotateX(-2deg) translateY(-20px); }
+                  100% { transform: rotateY(-5deg) rotateX(5deg) translateY(0px); }
+                }
+                .hero-3d-motion {
+                  animation: float3d 8s ease-in-out infinite;
+                  box-shadow: 0 25px 60px rgba(6, 182, 212, 0.3), 0 0 0 1px rgba(255,255,255,0.1);
+                }
+                .hero-3d-motion:hover {
+                  animation-play-state: paused;
+                  transform: rotateY(0deg) rotateX(0deg) translateY(0px) scale(1.05) !important;
+                  transition: transform 0.5s ease, box-shadow 0.5s ease;
+                  box-shadow: 0 35px 80px rgba(138, 43, 226, 0.4), 0 0 0 1px rgba(255,255,255,0.2);
+                }
+              `}
+            </style>
+            
+            {/* Glowing orb behind the image to add to the motion effect */}
+            <div style={{
+              position: 'absolute',
+              width: '80%',
+              height: '80%',
+              background: 'radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, transparent 70%)',
+              filter: 'blur(40px)',
+              animation: 'pulse 4s infinite alternate',
+              zIndex: -1
+            }} />
+
+            <img 
+              src="/hero-3d.jpg" 
+              alt="Goocky 3D Node Builder Illustration" 
+              className="hero-3d-motion"
+              style={{
+                width: '100%',
+                maxWidth: '650px',
+                height: 'auto',
+                borderRadius: '24px',
+                transition: 'transform 0.5s ease',
+              }}
+            />
           </div>
         </section>
 
@@ -196,9 +224,9 @@ export default function LandingPage() {
       <footer id="landing-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '48px 24px', textAlign: 'center', background: 'var(--bg-dark)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '24px' }}>
           <Zap size={24} color="#8a2be2" />
-          <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>Cirlo</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>Goocky</span>
         </div>
-        <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0 }}>© {new Date().getFullYear()} Cirlo. Built for efficiency.</p>
+        <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0 }}>© {new Date().getFullYear()} Goocky. Built for efficiency.</p>
       </footer>
     </div>
   );
