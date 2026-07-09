@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 import { Zap, ArrowRight, Activity, Workflow, Shield, Globe } from 'lucide-react';
+import Hero3D from '../components/Hero3D';
 
 export default function LandingPage() {
   useSEO({
@@ -167,18 +168,9 @@ export default function LandingPage() {
               zIndex: -1
             }} />
 
-            <img 
-              src="/hero-3d.jpg" 
-              alt="Goocky 3D Node Builder Illustration" 
-              className="hero-3d-motion"
-              style={{
-                width: '100%',
-                maxWidth: '650px',
-                height: 'auto',
-                borderRadius: '24px',
-                transition: 'transform 0.5s ease',
-              }}
-            />
+            <div style={{ width: '100%', height: '500px', maxWidth: '650px', position: 'relative', zIndex: 1 }}>
+              <Hero3D />
+            </div>
           </div>
         </section>
 
