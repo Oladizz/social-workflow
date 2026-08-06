@@ -111,4 +111,23 @@ export const TEMPLATES: WorkflowTemplate[] = [
       { id: 'e2', source: 'a1', target: 'a2', animated: true, style: { stroke: '#8a2be2', strokeWidth: 2 } },
     ],
   },
+
+  {
+    id: 'marketing-funnel-ai',
+    name: 'Marketing Funnel (Auto-Post)',
+    description: 'Generates a marketing post and publishes it directly to multiple platforms (Discord, Telegram, X).',
+    icon: '🚀',
+    tags: ['Marketing', 'Funnel', 'Cross-Post', 'AI'],
+    nodes: [
+      { id: 't1', type: 'triggerNode', position: { x: 400, y: 40 }, data: { triggerType: 'schedule', scheduleFreq: 'daily', scheduleTime: '12:00' } },
+      { id: 'c1', type: 'contentGeneratorNode', position: { x: 400, y: 200 }, data: { product: 'store', contentType: 'launch', platform: 'all' } },
+      { id: 'a1', type: 'actionNode', position: { x: 200, y: 400 }, data: { platform: 'discord', selectedAction: 'post' } },
+      { id: 'a2', type: 'actionNode', position: { x: 600, y: 400 }, data: { platform: 'telegram', selectedAction: 'post' } },
+    ],
+    edges: [
+      { id: 'e1', source: 't1', target: 'c1', animated: true, style: { stroke: '#00B2FF', strokeWidth: 2 } },
+      { id: 'e2', source: 'c1', target: 'a1', animated: true, style: { stroke: '#00B2FF', strokeWidth: 2 } },
+      { id: 'e3', source: 'c1', target: 'a2', animated: true, style: { stroke: '#00B2FF', strokeWidth: 2 } },
+    ],
+  },
 ];

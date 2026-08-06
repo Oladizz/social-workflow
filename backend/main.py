@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import uvicorn
 
+from routes.competitor_routes import router as competitor_router
+from routes.posting_routes import router as posting_router
+
 app = FastAPI(title="Social Workflow Backend")
 
 app.add_middleware(
@@ -13,6 +16,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(competitor_router)
+app.include_router(posting_router)
 
 scheduler = AsyncIOScheduler()
 

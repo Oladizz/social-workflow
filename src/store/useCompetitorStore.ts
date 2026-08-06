@@ -101,43 +101,70 @@ export const useCompetitorStore = create<CompetitorState>((set) => {
     ...getInitialState(),
     isLoading: false,
 
-    fetchTrends: (query) => {
+    fetchTrends: async (query) => {
       set({ isLoading: true });
-      setTimeout(() => set({ isLoading: false }), 800);
+      try {
+        const response = await fetch('http://localhost:8000/api/spy/trends', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query || null, category: null })
+        });
+        if (!response.ok) throw new Error('Failed to fetch trends');
+        const data = await response.json();
+        set({ trendingProducts: data, isLoading: false });
+      } catch (error) {
+        console.error(error);
+        set({ isLoading: false });
+        // Fallback to mock if backend not running
+        set({ trendingProducts: mockTrendingProducts });
+      }
     },
     
-    analyzeStore: (url) => {
+    analyzeStore: async (url) => {
       set({ isLoading: true });
-      setTimeout(() => {
-        const mockStore: WatchedStore = {
-          id: Date.now().toString(),
-          url,
-          name: url.replace('https://', '').split('.')[0].toUpperCase(),
-          productCount: Math.floor(Math.random() * 200) + 10,
-          priceRange: '$15 - $250',
-          lastChecked: new Date().toISOString(),
-          topProducts: [
-            { id: 'p1', title: 'Best Seller Alpha', price: '$49.99', variants: 3, imageUrl: 'https://via.placeholder.com/150' },
-            { id: 'p2', title: 'Premium Bundle', price: '$99.99', variants: 1, imageUrl: 'https://via.placeholder.com/150' },
-          ]
-        };
+      try {
+        const response = await fetch('http://localhost:8000/api/spy/analyze-store', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        if (!response.ok) throw new Error('Failed to analyze store');
+        const storeData = await response.json();
+        
         set((state) => {
-          const newState = { isLoading: false, watchedStores: [...state.watchedStores, mockStore] };
+          // Check if already in watchlist to update or add
+          const existingIdx = state.watchedStores.findIndex(s => s.id === storeData.id);
+          let newWatched = [...state.watchedStores];
+          if (existingIdx >= 0) {
+            newWatched[existingIdx] = storeData;
+          } else {
+            newWatched.push(storeData);
+          }
+          const newState = { isLoading: false, watchedStores: newWatched };
           persistState({ watchedStores: newState.watchedStores });
           return newState;
         });
-      }, 1000);
+      } catch (error) {
+        console.error(error);
+        set({ isLoading: false });
+      }
     },
 
-    searchAds: (query) => {
+    searchAds: async (query) => {
       set({ isLoading: true });
-      setTimeout(() => {
-        const mockAds: SavedAd[] = [
-          { id: 'a1', brand: query || 'CoolBrand', copy: 'Stop wasting time. Try our new tool today and save hours!', platforms: ['FB', 'IG'], daysActive: 14, imageUrl: 'https://via.placeholder.com/300x200' },
-          { id: 'a2', brand: query || 'TrendyTech', copy: 'The ultimate gadget for your workspace. 50% off for 24 hours.', platforms: ['TikTok'], daysActive: 5, imageUrl: 'https://via.placeholder.com/300x200' },
-        ];
-        set({ isLoading: false, savedAds: mockAds });
-      }, 800);
+      try {
+        const response = await fetch('http://localhost:8000/api/spy/ad-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query })
+        });
+        if (!response.ok) throw new Error('Failed to search ads');
+        const data = await response.json();
+        set({ isLoading: false, savedAds: data });
+      } catch (error) {
+        console.error(error);
+        set({ isLoading: false });
+      }
     },
 
     addToWatchlist: (store) => set((state) => {
