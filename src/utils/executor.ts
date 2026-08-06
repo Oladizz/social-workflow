@@ -99,11 +99,41 @@ export async function executeWorkflow(
             throw new Error(`Backend Error (${response.status}): ${errorMsg}`);
           }
           output = data;
+        } else if (platform === 'gmail') {
+          const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+          let endpoint = '/api/gmail/draft';
+          
+          let payload = {
+            to: inputData.to || 'test@example.com',
+            subject: inputData.subject || 'Automated Email',
+            body: inputData.body || inputData.content || node.data.message || 'Hello from Social Workflow!'
+          };
+
+          const response = await fetch(`${backendUrl}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          
+          if (!response.ok) throw new Error('Gmail API failed');
+          output = await response.json();
         } else {
           // Placeholder for other platforms
           await new Promise(resolve => setTimeout(resolve, 1000));
           output = { message: `Simulated action for ${platform}` };
         }
+      } else if (node.type === 'logic' && node.data.nodeType === 'scrapeNode') {
+        const url = node.data.url || node.data.input || 'https://example.com';
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        
+        const response = await fetch(`${backendUrl}/api/tools/scrape`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+        });
+        
+        if (!response.ok) throw new Error('Scraping failed');
+        output = await response.json();
       } else if (node.type === 'delayNode') {
         const ms = (node.data.delayMs || 1000) as number;
         await new Promise(resolve => setTimeout(resolve, ms));

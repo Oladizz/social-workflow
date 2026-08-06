@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Activity, User, LogOut, Plug, Settings } from 'lucide-react';
+import { LayoutGrid, Activity, User, LogOut, Plug, Settings, Calendar, Filter, Target } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import '../index.css';
@@ -11,6 +11,9 @@ export default function DashboardLayout() {
     { name: 'Workflows', path: '/dashboard', icon: LayoutGrid },
     { name: 'Runs', path: '/runs', icon: Activity },
     { name: 'Integrations', path: '/integrations', icon: Plug },
+    { name: 'Calendar', path: '/calendar', icon: Calendar },
+    { name: 'Funnel', path: '/funnel', icon: Filter },
+    { name: 'Spy Tool', path: '/spy', icon: Target },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 

@@ -63,6 +63,15 @@ export default function CommandPalette({ onClose }: CommandPaletteProps) {
       action: () => { addNode('ai', { model: a.id }); toast.info(`${a.label} added`); onClose(); }
     }));
 
+    
+    const tools = [
+      { id: 'scrapeNode', label: 'Web Scraper', desc: 'Extract text from any website URL', color: '#14b8a6', emoji: '???' }
+    ].map(n => ({
+      id: n.id, label: n.label, description: n.desc, category: 'Tools',
+      icon: <span style={{ fontSize: '13px' }}>{n.emoji}</span>,
+      action: () => { addNode('logic' as any, { nodeType: n.id }); toast.info(n.label + ' added'); onClose(); }
+    }));
+
     const socials = PLATFORMS.map(p => {
       const Icon = p.IconComponent;
       return {
@@ -72,7 +81,7 @@ export default function CommandPalette({ onClose }: CommandPaletteProps) {
       };
     });
 
-    return [...triggers, ...logic, ...ai, ...socials];
+    return [...triggers, ...logic, ...ai, ...tools, ...socials];
   }, [addNode, onClose, toast]);
 
   const filtered = useMemo(() => {

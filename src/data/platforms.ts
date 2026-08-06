@@ -23,6 +23,17 @@ export interface Platform {
 
 export const PLATFORMS: Platform[] = [
   {
+    id: 'gmail',
+    name: 'Gmail',
+    color: '#EA4335',
+    bgGradient: 'linear-gradient(135deg, #EA4335, #C5221F)',
+    IconComponent: SiGmail,
+    actions: [
+      { id: 'draft', label: 'Draft Email', icon: '??', description: 'Create a draft email' },
+      { id: 'send', label: 'Send Email', icon: '??', description: 'Send an email directly' },
+    ]
+  },
+  {
     id: 'twitter',
     name: 'X / Twitter',
     color: '#000000',
