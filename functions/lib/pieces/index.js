@@ -44,6 +44,71 @@ const linkedinPiece = (0, framework_1.createPiece)({
         })
     }
 });
+// --- Buffer Piece ---
+const bufferPiece = (0, framework_1.createPiece)({
+    name: 'buffer',
+    displayName: 'Buffer',
+    logoUrl: '',
+    actions: {
+        create_post: (0, framework_1.createAction)({
+            name: 'create_post',
+            displayName: 'Create Post',
+            description: 'Create a post across multiple social media platforms via Buffer',
+            run: async (context) => {
+                var _a, _b, _c, _d, _e;
+                const message = context.propsValue.message || context.propsValue.content || context.payload.generatedText || 'Hello from Social Workflow!';
+                const bufferToken = process.env.BUFFER_API_KEY || 'N5YGSt1hQeD8ektOYIKzWMmZgl7XBy7N3-lqjoAfJd2';
+                // 1. Get organization ID
+                const orgRes = await axios_1.default.post('https://api.buffer.com', { query: '{ account { organizations { id } } }' }, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` } });
+                const orgId = (_d = (_c = (_b = (_a = orgRes.data.data) === null || _a === void 0 ? void 0 : _a.account) === null || _b === void 0 ? void 0 : _b.organizations) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.id;
+                if (!orgId)
+                    throw new Error('Could not find Buffer organization');
+                // 2. Get channels
+                const channelsRes = await axios_1.default.post('https://api.buffer.com', { query: `{ channels(input: {organizationId: "${orgId}"}) { id name service } }` }, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` } });
+                const channels = ((_e = channelsRes.data.data) === null || _e === void 0 ? void 0 : _e.channels) || [];
+                // Match the original requested platform stored in propsValue, or fallback
+                const originalPlatform = (context.propsValue.originalPlatform || 'all').toLowerCase();
+                let targetChannels = channels;
+                if (originalPlatform !== 'all' && originalPlatform !== 'buffer') {
+                    const searchService = originalPlatform === 'x' ? 'twitter' : originalPlatform;
+                    targetChannels = channels.filter((c) => c.service.toLowerCase() === searchService);
+                }
+                if (targetChannels.length === 0) {
+                    targetChannels = channels; // fallback to all
+                }
+                if (targetChannels.length === 0) {
+                    throw new Error(`No connected Buffer channels found.`);
+                }
+                // 3. Post to channels
+                const results = [];
+                for (const channel of targetChannels) {
+                    const postRes = await axios_1.default.post('https://api.buffer.com', {
+                        query: `mutation CreatePost($input: CreatePostInput!) {
+                createPost(input: $input) {
+                  __typename
+                }
+              }`,
+                        variables: {
+                            input: {
+                                channelId: channel.id,
+                                text: message,
+                                mode: "shareNow",
+                                needsApproval: false,
+                                schedulingType: "automatic",
+                                assets: []
+                            }
+                        }
+                    }, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` } });
+                    if (postRes.data.errors) {
+                        throw new Error(`Buffer API Error for ${channel.service}: ${postRes.data.errors[0].message}`);
+                    }
+                    results.push({ channel: channel.service, result: postRes.data.data });
+                }
+                return { message: `Posted via Buffer to ${targetChannels.length} channels`, results };
+            }
+        })
+    }
+});
 // --- Telegram Piece ---
 const telegramPiece = (0, framework_1.createPiece)({
     name: 'telegram',
@@ -149,6 +214,7 @@ const geminiPiece = (0, framework_1.createPiece)({
 const knowledge_1 = require("./knowledge");
 // ─── All Pieces Registry ────────────────────────────────────────────────────
 exports.pieces = [
+    bufferPiece,
     twitter_1.twitterPiece,
     linkedinPiece,
     telegramPiece,

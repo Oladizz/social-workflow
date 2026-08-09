@@ -244,7 +244,12 @@ exports.executeNodeTask = (0, tasks_1.onTaskDispatched)({
         // ACTION NODE — Execute platform piece (Twitter, LinkedIn, etc.)
         // ═══════════════════════════════════════════════════════════════════════
         else if (nodeType === 'actionNode') {
-            const platform = resolvedData.platform;
+            let platform = resolvedData.platform;
+            const normalizedPlatform = (platform === null || platform === void 0 ? void 0 : platform.toLowerCase()) || '';
+            let originalPlatform = normalizedPlatform;
+            if (['twitter', 'x', 'youtube', 'linkedin', 'buffer', 'all'].includes(normalizedPlatform)) {
+                platform = 'buffer';
+            }
             const piece = (0, pieces_1.getPiece)(platform);
             if (!piece) {
                 console.warn(`[EXEC] Piece "${platform}" not found.`);
@@ -254,7 +259,7 @@ exports.executeNodeTask = (0, tasks_1.onTaskDispatched)({
                 const actionName = Object.keys(piece.actions)[0];
                 const action = piece.actions[actionName];
                 const message = resolveVariables(resolvedData.message || nextPayload.generatedText || '', nextPayload);
-                const context = { payload: nextPayload, propsValue: Object.assign(Object.assign({}, resolvedData), { message }) };
+                const context = { payload: nextPayload, propsValue: Object.assign(Object.assign({}, resolvedData), { message, originalPlatform }) };
                 console.log(`[EXEC] Running ${piece.displayName} → ${action.displayName}`);
                 const result = await action.run(context);
                 nextPayload[nodeId] = result;

@@ -212,7 +212,14 @@ export const executeNodeTask = onTaskDispatched(
       // ACTION NODE — Execute platform piece (Twitter, LinkedIn, etc.)
       // ═══════════════════════════════════════════════════════════════════════
       else if (nodeType === 'actionNode') {
-        const platform = resolvedData.platform;
+        let platform = resolvedData.platform;
+        const normalizedPlatform = platform?.toLowerCase() || '';
+        
+        let originalPlatform = normalizedPlatform;
+        if (['twitter', 'x', 'youtube', 'linkedin', 'buffer', 'all'].includes(normalizedPlatform)) {
+          platform = 'buffer';
+        }
+
         const piece = getPiece(platform);
         if (!piece) {
           console.warn(`[EXEC] Piece "${platform}" not found.`);
@@ -221,7 +228,7 @@ export const executeNodeTask = onTaskDispatched(
           const actionName = Object.keys(piece.actions)[0];
           const action = piece.actions[actionName];
           const message = resolveVariables(resolvedData.message || nextPayload.generatedText || '', nextPayload);
-          const context = { payload: nextPayload, propsValue: { ...resolvedData, message } };
+          const context = { payload: nextPayload, propsValue: { ...resolvedData, message, originalPlatform } };
           console.log(`[EXEC] Running ${piece.displayName} → ${action.displayName}`);
           const result = await action.run(context);
           nextPayload[nodeId] = result;
