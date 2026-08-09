@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Sparkles, MoreHorizontal } from 'lucide-react';
+import { Sparkles, MoreHorizontal, Loader2, AlertCircle } from 'lucide-react';
+import { executeWorkflow } from '../utils/executor';
 
 type Stage = 'Ideas' | 'AI Generated' | 'Review Queue' | 'Scheduled' | 'Posted';
 
@@ -10,6 +11,8 @@ interface FunnelCard {
   platform: string;
   product: string;
   scheduledTime?: string;
+  isPosting?: boolean;
+  error?: string;
 }
 
 const mockCards: FunnelCard[] = [
@@ -35,7 +38,47 @@ export default function FunnelPage() {
     setCards(prev => [...prev, ...newCards]);
   };
 
-  const moveCard = (id: string, newStage: Stage) => {
+  const moveCard = async (id: string, newStage: Stage) => {
+    if (newStage === 'Posted') {
+      const cardToPost = cards.find(c => c.id === id);
+      if (cardToPost) {
+        setCards(prev => prev.map(c => c.id === id ? { ...c, isPosting: true, error: undefined } : c));
+        
+        try {
+          const runId = `funnel-${Date.now()}`;
+          const nodes = [
+            { id: 'trigger', type: 'triggerNode', data: {} },
+            { id: 'action', type: 'actionNode', data: { platform: cardToPost.platform.toLowerCase(), selectedAction: 'post', actionInput: { content: cardToPost.content } } }
+          ];
+          const edges = [
+            { id: 'e1', source: 'trigger', target: 'action' }
+          ];
+          
+          let actionError: string | null = null;
+
+          await executeWorkflow(
+            runId,
+            nodes,
+            edges,
+            () => {},
+            (stepId, status, output, err) => {
+              if (status === 'error') actionError = err || 'Unknown error';
+            }
+          );
+
+          if (actionError) {
+             setCards(prev => prev.map(c => c.id === id ? { ...c, isPosting: false, error: actionError as string } : c));
+             return; 
+          }
+          
+          setCards(prev => prev.map(c => c.id === id ? { ...c, stage: newStage, isPosting: false, error: undefined } : c));
+        } catch (e: any) {
+          setCards(prev => prev.map(c => c.id === id ? { ...c, isPosting: false, error: e.message || 'Execution failed' } : c));
+        }
+        return;
+      }
+    }
+    
     setCards(prev => prev.map(c => c.id === id ? { ...c, stage: newStage } : c));
   };
 
@@ -98,12 +141,20 @@ export default function FunnelPage() {
                       </div>
                     )}
                     
+                    {card.error && (
+                      <div style={{ fontSize: '12px', color: '#f87171', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(248,113,113,0.1)', padding: '6px', borderRadius: '4px' }}>
+                        <AlertCircle size={14} /> {card.error}
+                      </div>
+                    )}
+                    
                     <div style={{ display: 'flex', gap: '4px', marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
                       {stages.indexOf(stage) > 0 && (
-                         <button onClick={() => moveCard(card.id, stages[stages.indexOf(stage) - 1])} style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)', borderRadius: '6px', padding: '6px', cursor: 'pointer', fontSize: '12px', transition: 'background 0.2s' }}>← Move Back</button>
+                         <button disabled={card.isPosting} onClick={() => moveCard(card.id, stages[stages.indexOf(stage) - 1])} style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)', borderRadius: '6px', padding: '6px', cursor: card.isPosting ? 'not-allowed' : 'pointer', fontSize: '12px', transition: 'background 0.2s', opacity: card.isPosting ? 0.5 : 1 }}>← Move Back</button>
                       )}
                       {stages.indexOf(stage) < stages.length - 1 && (
-                         <button onClick={() => moveCard(card.id, stages[stages.indexOf(stage) + 1])} style={{ flex: 1, background: 'rgba(0,178,255,0.1)', border: '1px solid rgba(0,178,255,0.2)', color: '#00B2FF', borderRadius: '6px', padding: '6px', cursor: 'pointer', fontSize: '12px', transition: 'background 0.2s' }}>Advance →</button>
+                         <button disabled={card.isPosting} onClick={() => moveCard(card.id, stages[stages.indexOf(stage) + 1])} style={{ flex: 1, background: 'rgba(0,178,255,0.1)', border: '1px solid rgba(0,178,255,0.2)', color: '#00B2FF', borderRadius: '6px', padding: '6px', cursor: card.isPosting ? 'not-allowed' : 'pointer', fontSize: '12px', transition: 'background 0.2s', opacity: card.isPosting ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                           {card.isPosting ? <Loader2 size={12} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} /> : 'Advance →'}
+                         </button>
                       )}
                     </div>
                   </div>
