@@ -267,6 +267,25 @@ exports.executeNodeTask = (0, tasks_1.onTaskDispatched)({
             }
         }
         // ═══════════════════════════════════════════════════════════════════════
+        // LOGIC NODE — Scrape, code, etc.
+        // ═══════════════════════════════════════════════════════════════════════
+        else if (nodeType === 'logic' || resolvedData.nodeType === 'scrapeNode') {
+            const logicType = resolvedData.nodeType || 'scrapeNode';
+            if (logicType === 'scrapeNode') {
+                const url = resolvedData.url || resolvedData.input || 'https://example.com';
+                const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+                try {
+                    const response = await axios_1.default.post(`${backendUrl}/api/tools/scrape`, { url });
+                    nextPayload[nodeId] = response.data;
+                    await logStep(executionId, nodeId, nodeType, 'success', { url }, response.data);
+                }
+                catch (error) {
+                    console.error(`[EXEC] Scrape failed: ${error.message}`);
+                    await logStep(executionId, nodeId, nodeType, 'error', { url }, null, error.message);
+                }
+            }
+        }
+        // ═══════════════════════════════════════════════════════════════════════
         // ROUTER / BRANCH NODE — Evaluate conditions, route to matching branches
         // ═══════════════════════════════════════════════════════════════════════
         else if (nodeType === 'routerNode') {

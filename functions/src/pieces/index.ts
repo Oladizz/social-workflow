@@ -121,6 +121,35 @@ const bufferPiece = createPiece({
   }
 });
 
+// --- Gmail Piece ---
+const gmailPiece = createPiece({
+  name: 'gmail',
+  displayName: 'Gmail',
+  logoUrl: '',
+  actions: {
+    send_email: createAction({
+      name: 'send_email',
+      displayName: 'Send Email',
+      description: 'Draft or send an email via Gmail',
+      run: async (context) => {
+        const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+        const endpoint = '/api/gmail/draft';
+        const to = context.propsValue.to || 'test@example.com';
+        const subject = context.propsValue.subject || 'Automated Email';
+        const body = context.propsValue.body || context.propsValue.content || context.propsValue.message || context.payload.generatedText || 'Hello from Social Workflow!';
+        
+        const response = await axios.post(`${backendUrl}${endpoint}`, {
+          to,
+          subject,
+          body
+        });
+        
+        return response.data;
+      }
+    })
+  }
+});
+
 // --- Telegram Piece ---
 const telegramPiece = createPiece({
   name: 'telegram',
@@ -242,6 +271,7 @@ import { knowledgePiece } from './knowledge';
 // ─── All Pieces Registry ────────────────────────────────────────────────────
 export const pieces: Piece[] = [
   bufferPiece,
+  gmailPiece,
   twitterPiece,
   linkedinPiece,
   telegramPiece,
