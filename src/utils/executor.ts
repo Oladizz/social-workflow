@@ -118,9 +118,78 @@ export async function executeWorkflow(
           if (!response.ok) throw new Error('Gmail API failed');
           output = await response.json();
         } else {
-          // Placeholder for other platforms
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          output = { message: `Simulated action for ${platform}` };
+          // Fallback to Buffer API for other platforms
+          const bufferToken = import.meta.env.VITE_BUFFER_API_KEY || 'N5YGSt1hQeD8ektOYIKzWMmZgl7XBy7N3-lqjoAfJd2';
+          
+          // 1. Get organization ID
+          const orgRes = await fetch('https://api.buffer.com', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` },
+            body: JSON.stringify({ query: '{ account { organizations { id } } }' })
+          });
+          const orgData = await orgRes.json();
+          const orgId = orgData.data?.account?.organizations?.[0]?.id;
+          
+          if (!orgId) throw new Error('Could not find Buffer organization');
+
+          // 2. Get channels
+          const channelsRes = await fetch('https://api.buffer.com', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` },
+            body: JSON.stringify({ query: `{ channels(input: {organizationId: "${orgId}"}) { id name service } }` })
+          });
+          const channelsData = await channelsRes.json();
+          const channels = channelsData.data?.channels || [];
+          
+          // Match the requested platform, or post to all if 'all' or 'buffer' is specified
+          let targetChannels = channels;
+          if (platform !== 'all' && platform !== 'buffer') {
+            targetChannels = channels.filter((c: any) => c.service.toLowerCase() === platform.toLowerCase());
+          }
+          
+          if (targetChannels.length === 0) {
+            // If the specific platform isn't found in Buffer, just fallback to posting to all available channels
+            targetChannels = channels;
+          }
+
+          if (targetChannels.length === 0) {
+            throw new Error(`No connected Buffer channels found.`);
+          }
+
+          // 3. Post to channels
+          const content = inputData.content || node.data.message || 'Hello from Social Workflow!';
+          
+          const results = [];
+          for (const channel of targetChannels) {
+            const postRes = await fetch('https://api.buffer.com', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` },
+              body: JSON.stringify({
+                query: `mutation CreatePost($input: CreatePostInput!) {
+                  createPost(input: $input) {
+                    __typename
+                  }
+                }`,
+                variables: {
+                  input: {
+                    channelId: channel.id,
+                    text: content,
+                    mode: "shareNow",
+                    needsApproval: false,
+                    schedulingType: "automatic",
+                    assets: []
+                  }
+                }
+              })
+            });
+            const postData = await postRes.json();
+            if (postData.errors) {
+              throw new Error(`Buffer API Error for ${channel.service}: ${postData.errors[0].message}`);
+            }
+            results.push({ channel: channel.service, result: postData.data });
+          }
+          
+          output = { message: `Posted via Buffer to ${targetChannels.length} channels`, results };
         }
       } else if (node.type === 'logic' && node.data.nodeType === 'scrapeNode') {
         const url = node.data.url || node.data.input || 'https://example.com';
