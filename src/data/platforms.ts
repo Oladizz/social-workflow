@@ -3,6 +3,7 @@ import {
   FaTwitter, FaLinkedin, FaFacebook, FaInstagram, FaReddit, FaDiscord, 
   FaTelegram, FaYoutube, FaTiktok, FaMedium, FaPinterest, FaGithub
 } from 'react-icons/fa';
+import { SiGmail } from 'react-icons/si';
 import React from 'react';
 
 export interface PlatformAction {
