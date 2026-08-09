@@ -170,11 +170,13 @@ const telegramPiece = (0, framework_1.createPiece)({
             displayName: 'Send Message',
             description: 'Send a message to a Telegram chat',
             run: async (context) => {
-                const message = context.propsValue.message || context.payload.generatedText;
-                const token = context.propsValue.apiKey;
-                const chatId = context.propsValue.chatId || 'MOCK_CHAT_ID';
+                const message = context.propsValue.message || context.propsValue.content || context.payload.generatedText || 'Hello from Social Workflow!';
+                const token = context.propsValue.botToken || process.env.TELEGRAM_BOT_TOKEN;
+                const chatId = context.propsValue.chatId || process.env.TELEGRAM_CHAT_ID;
                 if (!token)
-                    throw new Error('Telegram credentials missing in node properties.');
+                    throw new Error('Telegram credentials (botToken) missing.');
+                if (!chatId)
+                    throw new Error('Telegram credentials (chatId) missing.');
                 const bot = new node_telegram_bot_api_1.default(token, { polling: false });
                 return await bot.sendMessage(chatId, message);
             }

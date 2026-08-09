@@ -693,13 +693,32 @@ export const bufferPost = onRequest({ cors: true }, async (req, res) => {
       results.push({ channel: channel.service, result: postRes.data.data });
     }
     
-    res.status(200).send({ 
-      success: true, 
-      message: `Posted via Buffer to ${targetChannels.length} channels`, 
-      results 
-    });
+    res.status(200).send({ success: true, results });
   } catch (error: any) {
     console.error('[BUFFER] Failed:', error.message || error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// ─── Telegram API Integration ────────────────────────────────────────────────
+export const telegramPost = onRequest({ cors: true }, async (req, res) => {
+  try {
+    const { content, botToken, chatId } = req.body;
+    
+    // Securely use the API key from environment, with fallback provided by user
+    const token = botToken || process.env.TELEGRAM_BOT_TOKEN;
+    const chat = chatId || process.env.TELEGRAM_CHAT_ID;
+    
+    if (!token) throw new Error('Telegram botToken is required.');
+    if (!chat) throw new Error('Telegram chatId is required.');
+    if (!content) throw new Error('Content is required to post.');
+
+    const bot = new (await import('node-telegram-bot-api')).default(token, { polling: false });
+    const result = await bot.sendMessage(chat, content);
+
+    res.status(200).send({ success: true, result });
+  } catch (error: any) {
+    console.error('[TELEGRAM] Failed:', error.message || error);
     res.status(500).send({ error: error.message });
   }
 });

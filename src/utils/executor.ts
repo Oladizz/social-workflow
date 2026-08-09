@@ -72,8 +72,28 @@ export async function executeWorkflow(
           
           if (!response.ok) throw new Error('Gmail API failed');
           output = await response.json();
+        } else if (normalizedPlatform === 'telegram') {
+          const functionsUrl = import.meta.env.VITE_FIREBASE_FUNCTIONS_URL || 'https://us-central1-my-portfolio-7cd72.cloudfunctions.net';
+          let payload = {
+            content: inputData.content || node.data.message || 'Hello from Social Workflow!',
+            botToken: inputData.botToken || undefined,
+            chatId: inputData.chatId || undefined
+          };
+
+          const response = await fetch(`${functionsUrl}/telegramPost`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Telegram Cloud Function failed with status ${response.status}`);
+          }
+          
+          output = await response.json();
         } else {
-          // Independent API placeholder for other platforms (Reddit, Discord, Telegram, etc.)
+          // Independent API placeholder for other platforms (Reddit, Discord, etc.)
           await new Promise(resolve => setTimeout(resolve, 1000));
           output = { message: `Simulated independent API action for ${platform}` };
         }
