@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.discordPost = exports.telegramPost = exports.bufferPost = exports.webhookTrigger = exports.triggerWorkflow = exports.executeNodeTask = void 0;
+exports.redditPost = exports.discordPost = exports.telegramPost = exports.bufferPost = exports.webhookTrigger = exports.triggerWorkflow = exports.executeNodeTask = void 0;
 exports.enqueueNode = enqueueNode;
 const https_1 = require("firebase-functions/v2/https");
 const tasks_1 = require("firebase-functions/v2/tasks");
@@ -735,6 +735,48 @@ exports.discordPost = (0, https_1.onRequest)({ cors: true }, async (req, res) =>
     }
     catch (error) {
         console.error('[DISCORD] Failed:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message || error);
+        res.status(500).send({ error: ((_c = (_b = error.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.message) || error.message });
+    }
+});
+// ─── Reddit API Integration ────────────────────────────────────────────────
+exports.redditPost = (0, https_1.onRequest)({ cors: true }, async (req, res) => {
+    var _a, _b, _c;
+    try {
+        const { content, clientId, clientSecret, refreshToken, subreddit } = req.body;
+        if (!clientId || !clientSecret || !refreshToken) {
+            throw new Error('Reddit credentials missing (clientId, clientSecret, refreshToken).');
+        }
+        const targetSub = subreddit || 'test';
+        const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+        const tokenRes = await axios_1.default.post('https://www.reddit.com/api/v1/access_token', 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(refreshToken), {
+            headers: {
+                'Authorization': `Basic ${authHeader}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'SocialWorkflow/1.0'
+            }
+        });
+        const accessToken = tokenRes.data.access_token;
+        if (!accessToken)
+            throw new Error('Failed to obtain Reddit access token.');
+        let title = content.split('\n')[0].substring(0, 300);
+        if (title.length < 3)
+            title = 'Social Workflow Auto-Post';
+        const params = new URLSearchParams();
+        params.append('sr', targetSub);
+        params.append('kind', 'self');
+        params.append('title', title);
+        params.append('text', content);
+        const response = await axios_1.default.post('https://oauth.reddit.com/api/submit', params.toString(), {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'SocialWorkflow/1.0'
+            }
+        });
+        res.status(200).send({ success: true, result: response.data });
+    }
+    catch (error) {
+        console.error('[REDDIT] Failed:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message || error);
         res.status(500).send({ error: ((_c = (_b = error.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.message) || error.message });
     }
 });

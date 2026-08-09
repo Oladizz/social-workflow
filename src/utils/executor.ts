@@ -112,8 +112,30 @@ export async function executeWorkflow(
           }
           
           output = await response.json();
+        } else if (normalizedPlatform === 'reddit') {
+          const functionsUrl = import.meta.env.VITE_FIREBASE_FUNCTIONS_URL || 'https://us-central1-my-portfolio-7cd72.cloudfunctions.net';
+          let payload = {
+            content: inputData.content || node.data.message || 'Hello from Social Workflow!',
+            clientId: inputData.clientId || undefined,
+            clientSecret: inputData.clientSecret || undefined,
+            refreshToken: inputData.refreshToken || undefined,
+            subreddit: inputData.subreddit || undefined
+          };
+
+          const response = await fetch(`${functionsUrl}/redditPost`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Reddit Cloud Function failed with status ${response.status}`);
+          }
+          
+          output = await response.json();
         } else {
-          // Independent API placeholder for other platforms (Reddit, etc.)
+          // Independent API placeholder for other platforms (Facebook, Instagram, etc.)
           await new Promise(resolve => setTimeout(resolve, 1000));
           output = { message: `Simulated independent API action for ${platform}` };
         }

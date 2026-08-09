@@ -752,3 +752,57 @@ export const discordPost = onRequest({ cors: true }, async (req, res) => {
     res.status(500).send({ error: error.response?.data?.message || error.message });
   }
 });
+
+// ─── Reddit API Integration ────────────────────────────────────────────────
+export const redditPost = onRequest({ cors: true }, async (req, res) => {
+  try {
+    const { content, clientId, clientSecret, refreshToken, subreddit } = req.body;
+    
+    if (!clientId || !clientSecret || !refreshToken) {
+      throw new Error('Reddit credentials missing (clientId, clientSecret, refreshToken).');
+    }
+    const targetSub = subreddit || 'test';
+
+    const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    const tokenRes = await axios.post(
+      'https://www.reddit.com/api/v1/access_token',
+      'grant_type=refresh_token&refresh_token=' + encodeURIComponent(refreshToken),
+      {
+        headers: {
+          'Authorization': `Basic ${authHeader}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'SocialWorkflow/1.0'
+        }
+      }
+    );
+    
+    const accessToken = tokenRes.data.access_token;
+    if (!accessToken) throw new Error('Failed to obtain Reddit access token.');
+
+    let title = content.split('\n')[0].substring(0, 300);
+    if (title.length < 3) title = 'Social Workflow Auto-Post';
+    
+    const params = new URLSearchParams();
+    params.append('sr', targetSub);
+    params.append('kind', 'self');
+    params.append('title', title);
+    params.append('text', content);
+
+    const response = await axios.post(
+      'https://oauth.reddit.com/api/submit',
+      params.toString(),
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'SocialWorkflow/1.0'
+        }
+      }
+    );
+
+    res.status(200).send({ success: true, result: response.data });
+  } catch (error: any) {
+    console.error('[REDDIT] Failed:', error.response?.data || error.message || error);
+    res.status(500).send({ error: error.response?.data?.message || error.message });
+  }
+});

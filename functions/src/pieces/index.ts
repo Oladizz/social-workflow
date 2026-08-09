@@ -176,6 +176,71 @@ const googlebusinessPiece = createPiece({
   }
 });
 
+// --- Reddit Piece ---
+const redditPiece = createPiece({
+  name: 'reddit',
+  displayName: 'Reddit',
+  logoUrl: '',
+  actions: {
+    post: createAction({
+      name: 'post',
+      displayName: 'Submit Post',
+      description: 'Submit a new post to a subreddit',
+      run: async (context) => {
+        const message = context.propsValue.message || context.propsValue.content || context.payload.generatedText || 'Hello from Social Workflow!';
+        const clientId = context.propsValue.clientId;
+        const clientSecret = context.propsValue.clientSecret;
+        const refreshToken = context.propsValue.refreshToken;
+        const subreddit = context.propsValue.subreddit || 'test';
+        
+        if (!clientId || !clientSecret || !refreshToken) {
+          throw new Error('Reddit credentials missing. Please configure Client ID, Secret, and Refresh Token.');
+        }
+
+        const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+        const tokenRes = await axios.post(
+          'https://www.reddit.com/api/v1/access_token',
+          'grant_type=refresh_token&refresh_token=' + encodeURIComponent(refreshToken),
+          {
+            headers: {
+              'Authorization': `Basic ${authHeader}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'SocialWorkflow/1.0'
+            }
+          }
+        );
+        
+        const accessToken = tokenRes.data.access_token;
+        if (!accessToken) throw new Error('Failed to obtain Reddit access token.');
+
+        // Extract first line for title, max 300 chars
+        let title = message.split('\n')[0].substring(0, 300);
+        if (title.length < 3) title = 'Social Workflow Auto-Post';
+        
+        const params = new URLSearchParams();
+        params.append('sr', subreddit);
+        params.append('kind', 'self');
+        params.append('title', title);
+        params.append('text', message);
+
+        const response = await axios.post(
+          'https://oauth.reddit.com/api/submit',
+          params.toString(),
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'SocialWorkflow/1.0'
+            }
+          }
+        );
+
+        return { success: true, data: response.data };
+      }
+    })
+  }
+});
+
 // --- Discord Piece ---
 const discordPiece = createPiece({
   name: 'discord',
@@ -335,6 +400,7 @@ export const pieces: Piece[] = [
   bufferPiece,
   gmailPiece,
   googlebusinessPiece,
+  redditPiece,
   discordPiece,
   twitterPiece,
   linkedinPiece,
