@@ -26,9 +26,9 @@ export default function FunnelPage() {
 
   const handleGenerate = () => {
     const newCards: FunnelCard[] = Array.from({ length: 7 }).map((_, i) => ({
-      id: \`gen-\${Date.now()}-\${i}\`,
+      id: `gen-${Date.now()}-${i}`,
       stage: 'AI Generated',
-      content: \`🚀 Generated AI idea #\${i + 1} for optimal engagement this week based on trending topics.\`,
+      content: `🚀 Generated AI idea #${i + 1} for optimal engagement this week based on trending topics.`,
       platform: ['Twitter', 'LinkedIn', 'Reddit'][Math.floor(Math.random() * 3)],
       product: 'Auto'
     }));

@@ -91,7 +91,7 @@ export default function CompetitorSpyPage() {
                   
                   <div style={{ height: '40px', display: 'flex', alignItems: 'flex-end', gap: '4px', marginTop: '16px' }}>
                     {product.sparkline.map((val, i) => (
-                      <div key={i} style={{ flex: 1, background: 'linear-gradient(to top, #8a2be2, #00B2FF)', height: \`\${val}%\`, borderRadius: '3px', opacity: 0.8 }}></div>
+                      <div key={i} style={{ flex: 1, background: 'linear-gradient(to top, #8a2be2, #00B2FF)', height: `${val}%`, borderRadius: '3px', opacity: 0.8 }}></div>
                     ))}
                   </div>
                 </div>
@@ -185,8 +185,8 @@ export default function CompetitorSpyPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
               {(savedAds.length ? savedAds : [1,2,3,4]).map((item: any, i) => {
                 const isMock = typeof item === 'number';
-                const id = isMock ? \`mock-\${i}\` : item.id;
-                const brand = isMock ? \`BrandName \${i}\` : item.brand;
+                const id = isMock ? `mock-${i}` : item.id;
+                const brand = isMock ? `BrandName ${i}` : item.brand;
                 const copy = isMock ? 'This is the winning ad copy that is currently scaling. Notice the hook in the first line...' : item.copy;
                 
                 return (
@@ -230,7 +230,7 @@ export default function CompetitorSpyPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {aiInsights.map(insight => (
-                <div key={insight.id} style={{ background: 'rgba(255,255,255,0.02)', border: \`1px solid \${insight.type === 'opportunity' ? 'rgba(74, 222, 128, 0.2)' : insight.type === 'warning' ? 'rgba(248, 113, 113, 0.2)' : 'rgba(0, 178, 255, 0.2)'}\`, borderRadius: '12px', padding: '24px', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                <div key={insight.id} style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${insight.type === 'opportunity' ? 'rgba(74, 222, 128, 0.2)' : insight.type === 'warning' ? 'rgba(248, 113, 113, 0.2)' : 'rgba(0, 178, 255, 0.2)'}`, borderRadius: '12px', padding: '24px', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
                   <div style={{ marginTop: '2px', padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', color: insight.type === 'opportunity' ? '#4ade80' : insight.type === 'warning' ? '#f87171' : '#00B2FF' }}>
                     <Brain size={24} />
                   </div>

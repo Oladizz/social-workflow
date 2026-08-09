@@ -122,7 +122,7 @@ export default function ContentCalendarPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {dayPosts.map(post => (
-                    <div key={post.id} style={{ fontSize: '11px', background: 'rgba(255,255,255,0.04)', padding: '6px', borderRadius: '6px', borderLeft: \`3px solid \${platforms[post.platform]?.color || '#fff'}\`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div key={post.id} style={{ fontSize: '11px', background: 'rgba(255,255,255,0.04)', padding: '6px', borderRadius: '6px', borderLeft: `3px solid ${platforms[post.platform]?.color || '#fff'}`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontSize: '12px' }}>{platforms[post.platform]?.icon}</span>
                       <span style={{ opacity: 0.8 }}>{post.time}</span>
                       <span style={{ opacity: 0.5, marginLeft: 'auto' }}>
