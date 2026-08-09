@@ -223,7 +223,7 @@ const telegramPiece = createPiece({
       description: 'Send a message to a Telegram chat',
       run: async (context) => {
         const message = context.propsValue.message || context.propsValue.content || context.payload.generatedText || 'Hello from Social Workflow!';
-        const token = context.propsValue.botToken || process.env.TELEGRAM_BOT_TOKEN || '8870309220:AAHmvb2rIFHvusToIxnp2EMkx1F0PfEh-1M';
+        const token = context.propsValue.botToken || process.env.TELEGRAM_BOT_TOKEN;
         const chatId = context.propsValue.chatId || process.env.TELEGRAM_CHAT_ID;
         if (!token) throw new Error('Telegram credentials (botToken) missing.');
         if (!chatId) throw new Error('Telegram credentials (chatId) missing.');
