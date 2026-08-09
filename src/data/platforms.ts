@@ -1,7 +1,7 @@
 // Platform Registry: defines every supported social platform with its actions, brand color, and icon component
 import { 
   FaTwitter, FaLinkedin, FaFacebook, FaInstagram, FaReddit, FaDiscord, 
-  FaTelegram, FaYoutube, FaTiktok, FaMedium, FaPinterest, FaGithub
+  FaTelegram, FaYoutube, FaTiktok, FaMedium, FaPinterest, FaGithub, FaGoogle
 } from 'react-icons/fa';
 import { SiGmail } from 'react-icons/si';
 import React from 'react';
@@ -197,6 +197,19 @@ export const PLATFORMS: Platform[] = [
       { id: 'star', label: 'Star Repo', icon: '⭐', description: 'Star a repository' },
       { id: 'comment', label: 'Comment', icon: '💬', description: 'Comment on an issue or PR' },
       { id: 'release', label: 'Create Release', icon: '🚀', description: 'Create a new release' },
+    ]
+  },
+  {
+    id: 'googlebusiness',
+    name: 'Google Business',
+    color: '#4285F4',
+    bgGradient: 'linear-gradient(135deg, #4285F4, #0d47a1)',
+    IconComponent: FaGoogle,
+    actions: [
+      { id: 'post', label: 'Create Post', icon: '📝', description: 'Create an update post on Google Business Profile' },
+      { id: 'offer', label: 'Create Offer', icon: '🏷️', description: 'Create an offer post' },
+      { id: 'event', label: 'Create Event', icon: '📅', description: 'Create an event post' },
+      { id: 'reply', label: 'Reply to Review', icon: '💬', description: 'Reply to a customer review' },
     ]
   },
 ];

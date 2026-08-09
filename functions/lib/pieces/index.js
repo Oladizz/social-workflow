@@ -135,6 +135,30 @@ const gmailPiece = (0, framework_1.createPiece)({
         })
     }
 });
+// --- Google Business Piece ---
+const googlebusinessPiece = (0, framework_1.createPiece)({
+    name: 'googlebusiness',
+    displayName: 'Google Business',
+    logoUrl: '',
+    actions: {
+        post: (0, framework_1.createAction)({
+            name: 'post',
+            displayName: 'Create Post',
+            description: 'Create a post on Google Business Profile',
+            run: async (context) => {
+                const message = context.propsValue.message || context.payload.generatedText || 'Hello from Social Workflow!';
+                const token = context.propsValue.apiKey;
+                if (!token)
+                    throw new Error('Google Business API credentials missing.');
+                // This is a placeholder for the real independent Google Business Profile API
+                // https://developers.google.com/my-business/content/basic-setup
+                console.log('[EXEC] Simulated Google Business API call with message:', message);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                return { success: true, message: `Simulated posting to Google Business: ${message}` };
+            }
+        })
+    }
+});
 // --- Telegram Piece ---
 const telegramPiece = (0, framework_1.createPiece)({
     name: 'telegram',
@@ -242,6 +266,7 @@ const knowledge_1 = require("./knowledge");
 exports.pieces = [
     bufferPiece,
     gmailPiece,
+    googlebusinessPiece,
     twitter_1.twitterPiece,
     linkedinPiece,
     telegramPiece,

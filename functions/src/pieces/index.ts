@@ -150,6 +150,32 @@ const gmailPiece = createPiece({
   }
 });
 
+// --- Google Business Piece ---
+const googlebusinessPiece = createPiece({
+  name: 'googlebusiness',
+  displayName: 'Google Business',
+  logoUrl: '',
+  actions: {
+    post: createAction({
+      name: 'post',
+      displayName: 'Create Post',
+      description: 'Create a post on Google Business Profile',
+      run: async (context) => {
+        const message = context.propsValue.message || context.payload.generatedText || 'Hello from Social Workflow!';
+        const token = context.propsValue.apiKey;
+        if (!token) throw new Error('Google Business API credentials missing.');
+        
+        // This is a placeholder for the real independent Google Business Profile API
+        // https://developers.google.com/my-business/content/basic-setup
+        console.log('[EXEC] Simulated Google Business API call with message:', message);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        return { success: true, message: `Simulated posting to Google Business: ${message}` };
+      }
+    })
+  }
+});
+
 // --- Telegram Piece ---
 const telegramPiece = createPiece({
   name: 'telegram',
@@ -272,6 +298,7 @@ import { knowledgePiece } from './knowledge';
 export const pieces: Piece[] = [
   bufferPiece,
   gmailPiece,
+  googlebusinessPiece,
   twitterPiece,
   linkedinPiece,
   telegramPiece,
