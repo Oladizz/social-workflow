@@ -742,13 +742,13 @@ exports.discordPost = (0, https_1.onRequest)({ cors: true }, async (req, res) =>
 exports.redditPost = (0, https_1.onRequest)({ cors: true }, async (req, res) => {
     var _a, _b, _c;
     try {
-        const { content, clientId, clientSecret, refreshToken, subreddit } = req.body;
-        if (!clientId || !clientSecret || !refreshToken) {
-            throw new Error('Reddit credentials missing (clientId, clientSecret, refreshToken).');
+        const { content, clientId, clientSecret, username, password, subreddit } = req.body;
+        if (!clientId || !clientSecret || !username || !password) {
+            throw new Error('Reddit credentials missing (clientId, clientSecret, username, password).');
         }
         const targetSub = subreddit || 'test';
         const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-        const tokenRes = await axios_1.default.post('https://www.reddit.com/api/v1/access_token', 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(refreshToken), {
+        const tokenRes = await axios_1.default.post('https://www.reddit.com/api/v1/access_token', `grant_type=password&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
             headers: {
                 'Authorization': `Basic ${authHeader}`,
                 'Content-Type': 'application/x-www-form-urlencoded',

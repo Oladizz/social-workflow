@@ -118,7 +118,8 @@ export async function executeWorkflow(
             content: inputData.content || node.data.message || 'Hello from Social Workflow!',
             clientId: inputData.clientId || undefined,
             clientSecret: inputData.clientSecret || undefined,
-            refreshToken: inputData.refreshToken || undefined,
+            username: inputData.username || undefined,
+            password: inputData.password || undefined,
             subreddit: inputData.subreddit || undefined
           };
 

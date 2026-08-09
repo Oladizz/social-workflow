@@ -756,17 +756,17 @@ export const discordPost = onRequest({ cors: true }, async (req, res) => {
 // ─── Reddit API Integration ────────────────────────────────────────────────
 export const redditPost = onRequest({ cors: true }, async (req, res) => {
   try {
-    const { content, clientId, clientSecret, refreshToken, subreddit } = req.body;
+    const { content, clientId, clientSecret, username, password, subreddit } = req.body;
     
-    if (!clientId || !clientSecret || !refreshToken) {
-      throw new Error('Reddit credentials missing (clientId, clientSecret, refreshToken).');
+    if (!clientId || !clientSecret || !username || !password) {
+      throw new Error('Reddit credentials missing (clientId, clientSecret, username, password).');
     }
     const targetSub = subreddit || 'test';
 
     const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
     const tokenRes = await axios.post(
       'https://www.reddit.com/api/v1/access_token',
-      'grant_type=refresh_token&refresh_token=' + encodeURIComponent(refreshToken),
+      `grant_type=password&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
       {
         headers: {
           'Authorization': `Basic ${authHeader}`,

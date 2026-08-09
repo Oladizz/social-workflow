@@ -190,17 +190,18 @@ const redditPiece = createPiece({
         const message = context.propsValue.message || context.propsValue.content || context.payload.generatedText || 'Hello from Social Workflow!';
         const clientId = context.propsValue.clientId;
         const clientSecret = context.propsValue.clientSecret;
-        const refreshToken = context.propsValue.refreshToken;
+        const username = context.propsValue.username;
+        const password = context.propsValue.password;
         const subreddit = context.propsValue.subreddit || 'test';
         
-        if (!clientId || !clientSecret || !refreshToken) {
-          throw new Error('Reddit credentials missing. Please configure Client ID, Secret, and Refresh Token.');
+        if (!clientId || !clientSecret || !username || !password) {
+          throw new Error('Reddit credentials missing. Please configure Client ID, Secret, Username, and Password.');
         }
 
         const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
         const tokenRes = await axios.post(
           'https://www.reddit.com/api/v1/access_token',
-          'grant_type=refresh_token&refresh_token=' + encodeURIComponent(refreshToken),
+          `grant_type=password&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
           {
             headers: {
               'Authorization': `Basic ${authHeader}`,
