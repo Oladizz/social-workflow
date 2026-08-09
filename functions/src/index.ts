@@ -706,7 +706,7 @@ export const telegramPost = onRequest({ cors: true }, async (req, res) => {
     const { content, botToken, chatId } = req.body;
     
     // Securely use the API key from environment, with fallback provided by user
-    const token = botToken || process.env.TELEGRAM_BOT_TOKEN;
+    const token = botToken || process.env.TELEGRAM_BOT_TOKEN || '8870309220:AAHmvb2rIFHvusToIxnp2EMkx1F0PfEh-1M';
     const chat = chatId || process.env.TELEGRAM_CHAT_ID;
     
     if (!token) throw new Error('Telegram botToken is required.');
