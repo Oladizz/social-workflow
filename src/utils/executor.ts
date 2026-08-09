@@ -31,94 +31,10 @@ export async function executeWorkflow(
         const action = node.data.selectedAction || 'post'; // Default to post if not set
         const inputData = node.data.actionInput || {};
 
-        if (platform === 'twitter') {
-          // Get connection credentials
-          const connection = useConnectionsStore.getState().getConnectionForPlatform('twitter');
-          if (!connection) {
-            throw new Error('No Twitter connection found. Please add one in Integrations.');
-          }
+        const normalizedPlatform = platform?.toLowerCase() || '';
 
-          const { apiKey, apiSecret, twitterEmail, accessTokenSecret } = connection.credentials;
-          
-          let endpoint = '';
-          let payload: any = {
-            api_key: apiKey,
-            api_secret: apiSecret,
-            access_token: twitterEmail,
-            access_token_secret: accessTokenSecret
-          };
-
-          if (action === 'tweet' || action === 'post') {
-            endpoint = '/api/twitter/post';
-            payload.text = inputData.content || node.data.message || 'Hello from Social Workflow!';
-          } else if (action === 'reply') {
-            endpoint = '/api/twitter/reply';
-            payload.tweet_id = inputData.tweet_id || node.data.message;
-            payload.text = inputData.content || node.data.message;
-          } else if (action === 'like') {
-            endpoint = '/api/twitter/like';
-            payload.tweet_id = inputData.tweet_id || node.data.message;
-          } else if (action === 'retweet') {
-            endpoint = '/api/twitter/retweet';
-            payload.tweet_id = inputData.tweet_id || node.data.message;
-          } else if (action === 'dm') {
-            endpoint = '/api/twitter/dm';
-            payload.target_username = inputData.username || node.data.message;
-            payload.text = inputData.content || node.data.message;
-          } else {
-             throw new Error(`Unsupported Twitter action: ${action}`);
-          }
-
-          const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-          let response;
-          try {
-            response = await fetch(`${backendUrl}${endpoint}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-          } catch (e: any) {
-            throw new Error(`Network error connecting to backend: ${e.message}`);
-          }
-
-          let data;
-          const textResponse = await response.text();
-          try {
-            data = JSON.parse(textResponse);
-          } catch (e) {
-            throw new Error(`Server returned non-JSON response (${response.status}): ${textResponse.slice(0, 150)}...`);
-          }
-
-          if (!response.ok) {
-            let errorMsg = 'Failed to execute Twitter action';
-            if (data.detail) {
-              errorMsg = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
-            } else if (data.message) {
-              errorMsg = data.message;
-            }
-            throw new Error(`Backend Error (${response.status}): ${errorMsg}`);
-          }
-          output = data;
-        } else if (platform === 'gmail') {
-          const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-          let endpoint = '/api/gmail/draft';
-          
-          let payload = {
-            to: inputData.to || 'test@example.com',
-            subject: inputData.subject || 'Automated Email',
-            body: inputData.body || inputData.content || node.data.message || 'Hello from Social Workflow!'
-          };
-
-          const response = await fetch(`${backendUrl}${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          
-          if (!response.ok) throw new Error('Gmail API failed');
-          output = await response.json();
-        } else {
-          // Fallback to Buffer API for other platforms
+        if (['twitter', 'x', 'youtube', 'linkedin', 'buffer', 'all'].includes(normalizedPlatform)) {
+          // Use Buffer API for X, YouTube, LinkedIn, or if 'all'/'buffer' is specified
           const bufferToken = import.meta.env.VITE_BUFFER_API_KEY || 'N5YGSt1hQeD8ektOYIKzWMmZgl7XBy7N3-lqjoAfJd2';
           
           // 1. Get organization ID
@@ -143,12 +59,14 @@ export async function executeWorkflow(
           
           // Match the requested platform, or post to all if 'all' or 'buffer' is specified
           let targetChannels = channels;
-          if (platform !== 'all' && platform !== 'buffer') {
-            targetChannels = channels.filter((c: any) => c.service.toLowerCase() === platform.toLowerCase());
+          if (normalizedPlatform !== 'all' && normalizedPlatform !== 'buffer') {
+            // Map 'x' to 'twitter' for Buffer
+            const searchService = normalizedPlatform === 'x' ? 'twitter' : normalizedPlatform;
+            targetChannels = channels.filter((c: any) => c.service.toLowerCase() === searchService);
           }
           
           if (targetChannels.length === 0) {
-            // If the specific platform isn't found in Buffer, just fallback to posting to all available channels
+            // If the specific platform isn't found in Buffer, fallback to posting to all available channels
             targetChannels = channels;
           }
 
@@ -190,6 +108,28 @@ export async function executeWorkflow(
           }
           
           output = { message: `Posted via Buffer to ${targetChannels.length} channels`, results };
+        } else if (normalizedPlatform === 'gmail') {
+          const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+          let endpoint = '/api/gmail/draft';
+          
+          let payload = {
+            to: inputData.to || 'test@example.com',
+            subject: inputData.subject || 'Automated Email',
+            body: inputData.body || inputData.content || node.data.message || 'Hello from Social Workflow!'
+          };
+
+          const response = await fetch(`${backendUrl}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          
+          if (!response.ok) throw new Error('Gmail API failed');
+          output = await response.json();
+        } else {
+          // Independent API placeholder for other platforms (Reddit, Discord, Telegram, etc.)
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          output = { message: `Simulated independent API action for ${platform}` };
         }
       } else if (node.type === 'logic' && node.data.nodeType === 'scrapeNode') {
         const url = node.data.url || node.data.input || 'https://example.com';
