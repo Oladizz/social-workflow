@@ -159,6 +159,35 @@ const googlebusinessPiece = (0, framework_1.createPiece)({
         })
     }
 });
+// --- Discord Piece ---
+const discordPiece = (0, framework_1.createPiece)({
+    name: 'discord',
+    displayName: 'Discord',
+    logoUrl: '',
+    actions: {
+        send_message: (0, framework_1.createAction)({
+            name: 'send_message',
+            displayName: 'Send Message',
+            description: 'Send a message to a Discord channel',
+            run: async (context) => {
+                const message = context.propsValue.message || context.propsValue.content || context.payload.generatedText || 'Hello from Social Workflow!';
+                const botToken = context.propsValue.botToken || process.env.DISCORD_BOT_TOKEN;
+                const channelId = context.propsValue.channelId || process.env.DISCORD_CHANNEL_ID;
+                if (!botToken)
+                    throw new Error('Discord Bot Token is missing.');
+                if (!channelId)
+                    throw new Error('Discord Channel ID is missing.');
+                const response = await axios_1.default.post(`https://discord.com/api/v10/channels/${channelId}/messages`, { content: message }, {
+                    headers: {
+                        'Authorization': `Bot ${botToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+                return { success: true, data: response.data };
+            }
+        })
+    }
+});
 // --- Telegram Piece ---
 const telegramPiece = (0, framework_1.createPiece)({
     name: 'telegram',
@@ -269,6 +298,7 @@ exports.pieces = [
     bufferPiece,
     gmailPiece,
     googlebusinessPiece,
+    discordPiece,
     twitter_1.twitterPiece,
     linkedinPiece,
     telegramPiece,

@@ -9,7 +9,7 @@ const AUTH_FIELDS: Record<string, { key: string; label: string; placeholder: str
   facebook:  [{ key: 'accessToken', label: 'Page Access Token', placeholder: '' }, { key: 'pageId', label: 'Page ID', placeholder: '' }],
   instagram: [{ key: 'accessToken', label: 'Access Token', placeholder: '' }, { key: 'accountId', label: 'Account ID', placeholder: '' }],
   telegram:  [{ key: 'botToken', label: 'Bot Token', placeholder: 'Get from @BotFather on Telegram' }, { key: 'chatId', label: 'Default Chat ID', placeholder: '-100xxxxxxxxxx' }],
-  discord:   [{ key: 'botToken', label: 'Bot Token', placeholder: '' }, { key: 'guildId', label: 'Server ID', placeholder: '' }],
+  discord:   [{ key: 'botToken', label: 'Bot Token', placeholder: 'Discord Bot Token' }, { key: 'channelId', label: 'Channel ID', placeholder: 'ID of the channel to post in' }],
   reddit:    [{ key: 'clientId', label: 'Client ID', placeholder: '' }, { key: 'clientSecret', label: 'Client Secret', placeholder: '' }, { key: 'refreshToken', label: 'Refresh Token', placeholder: '' }],
   youtube:   [{ key: 'apiKey', label: 'API Key', placeholder: '' }],
   gemini:    [{ key: 'apiKey', label: 'Gemini API Key', placeholder: 'AIza...' }],

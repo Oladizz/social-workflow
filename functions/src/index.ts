@@ -722,3 +722,33 @@ export const telegramPost = onRequest({ cors: true }, async (req, res) => {
     res.status(500).send({ error: error.message });
   }
 });
+
+// ─── Discord API Integration ────────────────────────────────────────────────
+export const discordPost = onRequest({ cors: true }, async (req, res) => {
+  try {
+    const { content, botToken, channelId } = req.body;
+    
+    const token = botToken || process.env.DISCORD_BOT_TOKEN;
+    const channel = channelId || process.env.DISCORD_CHANNEL_ID;
+    
+    if (!token) throw new Error('Discord botToken is required.');
+    if (!channel) throw new Error('Discord channelId is required.');
+    if (!content) throw new Error('Content is required to post.');
+
+    const response = await axios.post(
+      `https://discord.com/api/v10/channels/${channel}/messages`,
+      { content },
+      {
+        headers: {
+          'Authorization': `Bot ${token}`,
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    res.status(200).send({ success: true, result: response.data });
+  } catch (error: any) {
+    console.error('[DISCORD] Failed:', error.response?.data || error.message || error);
+    res.status(500).send({ error: error.response?.data?.message || error.message });
+  }
+});

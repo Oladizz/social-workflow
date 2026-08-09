@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.telegramPost = exports.bufferPost = exports.webhookTrigger = exports.triggerWorkflow = exports.executeNodeTask = void 0;
+exports.discordPost = exports.telegramPost = exports.bufferPost = exports.webhookTrigger = exports.triggerWorkflow = exports.executeNodeTask = void 0;
 exports.enqueueNode = enqueueNode;
 const https_1 = require("firebase-functions/v2/https");
 const tasks_1 = require("firebase-functions/v2/tasks");
@@ -710,6 +710,32 @@ exports.telegramPost = (0, https_1.onRequest)({ cors: true }, async (req, res) =
     catch (error) {
         console.error('[TELEGRAM] Failed:', error.message || error);
         res.status(500).send({ error: error.message });
+    }
+});
+// ─── Discord API Integration ────────────────────────────────────────────────
+exports.discordPost = (0, https_1.onRequest)({ cors: true }, async (req, res) => {
+    var _a, _b, _c;
+    try {
+        const { content, botToken, channelId } = req.body;
+        const token = botToken || process.env.DISCORD_BOT_TOKEN;
+        const channel = channelId || process.env.DISCORD_CHANNEL_ID;
+        if (!token)
+            throw new Error('Discord botToken is required.');
+        if (!channel)
+            throw new Error('Discord channelId is required.');
+        if (!content)
+            throw new Error('Content is required to post.');
+        const response = await axios_1.default.post(`https://discord.com/api/v10/channels/${channel}/messages`, { content }, {
+            headers: {
+                'Authorization': `Bot ${token}`,
+                'Content-Type': 'application/json',
+            }
+        });
+        res.status(200).send({ success: true, result: response.data });
+    }
+    catch (error) {
+        console.error('[DISCORD] Failed:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message || error);
+        res.status(500).send({ error: ((_c = (_b = error.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.message) || error.message });
     }
 });
 //# sourceMappingURL=index.js.map
