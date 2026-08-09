@@ -598,3 +598,81 @@ export const webhookTrigger = onRequest({ cors: true, maxInstances: 10 }, async 
     res.status(500).send({ error: error.message });
   }
 });
+
+// ─── Buffer API Integration ──────────────────────────────────────────────────
+export const bufferPost = onRequest({ cors: true }, async (req, res) => {
+  try {
+    const { platform, content } = req.body;
+    
+    // Securely use the API key from environment, with fallback provided by user
+    const bufferToken = process.env.BUFFER_API_KEY || 'N5YGSt1hQeD8ektOYIKzWMmZgl7XBy7N3-lqjoAfJd2';
+    
+    // 1. Get organization ID
+    const orgRes = await axios.post('https://api.buffer.com', 
+      { query: '{ account { organizations { id } } }' },
+      { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` } }
+    );
+    const orgId = orgRes.data.data?.account?.organizations?.[0]?.id;
+    if (!orgId) throw new Error('Could not find Buffer organization');
+
+    // 2. Get channels
+    const channelsRes = await axios.post('https://api.buffer.com',
+      { query: `{ channels(input: {organizationId: "${orgId}"}) { id name service } }` },
+      { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` } }
+    );
+    const channels = channelsRes.data.data?.channels || [];
+    
+    // Match the requested platform, or post to all if 'all' or 'buffer' is specified
+    const normalizedPlatform = platform?.toLowerCase() || '';
+    let targetChannels = channels;
+    if (normalizedPlatform !== 'all' && normalizedPlatform !== 'buffer') {
+      const searchService = normalizedPlatform === 'x' ? 'twitter' : normalizedPlatform;
+      targetChannels = channels.filter((c: any) => c.service.toLowerCase() === searchService);
+    }
+    
+    if (targetChannels.length === 0) {
+      targetChannels = channels; // fallback to all
+    }
+    if (targetChannels.length === 0) {
+      throw new Error(`No connected Buffer channels found.`);
+    }
+
+    // 3. Post to channels
+    const results: any[] = [];
+    for (const channel of targetChannels) {
+      const postRes = await axios.post('https://api.buffer.com',
+        {
+          query: `mutation CreatePost($input: CreatePostInput!) {
+            createPost(input: $input) {
+              __typename
+            }
+          }`,
+          variables: {
+            input: {
+              channelId: channel.id,
+              text: content || 'Hello from Social Workflow!',
+              mode: "shareNow",
+              needsApproval: false,
+              schedulingType: "automatic",
+              assets: []
+            }
+          }
+        },
+        { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` } }
+      );
+      if (postRes.data.errors) {
+        throw new Error(`Buffer API Error for ${channel.service}: ${postRes.data.errors[0].message}`);
+      }
+      results.push({ channel: channel.service, result: postRes.data.data });
+    }
+    
+    res.status(200).send({ 
+      success: true, 
+      message: `Posted via Buffer to ${targetChannels.length} channels`, 
+      results 
+    });
+  } catch (error: any) {
+    console.error('[BUFFER] Failed:', error.message || error);
+    res.status(500).send({ error: error.message });
+  }
+});

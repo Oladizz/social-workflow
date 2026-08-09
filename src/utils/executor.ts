@@ -34,80 +34,26 @@ export async function executeWorkflow(
         const normalizedPlatform = platform?.toLowerCase() || '';
 
         if (['twitter', 'x', 'youtube', 'linkedin', 'buffer', 'all'].includes(normalizedPlatform)) {
-          // Use Buffer API for X, YouTube, LinkedIn, or if 'all'/'buffer' is specified
-          const bufferToken = import.meta.env.VITE_BUFFER_API_KEY || 'N5YGSt1hQeD8ektOYIKzWMmZgl7XBy7N3-lqjoAfJd2';
+          // Use the secure backend Cloud Function for Buffer API operations
+          const functionsUrl = import.meta.env.VITE_FIREBASE_FUNCTIONS_URL || 'https://us-central1-my-portfolio-7cd72.cloudfunctions.net';
           
-          // 1. Get organization ID
-          const orgRes = await fetch('https://api.buffer.com', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` },
-            body: JSON.stringify({ query: '{ account { organizations { id } } }' })
-          });
-          const orgData = await orgRes.json();
-          const orgId = orgData.data?.account?.organizations?.[0]?.id;
-          
-          if (!orgId) throw new Error('Could not find Buffer organization');
-
-          // 2. Get channels
-          const channelsRes = await fetch('https://api.buffer.com', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` },
-            body: JSON.stringify({ query: `{ channels(input: {organizationId: "${orgId}"}) { id name service } }` })
-          });
-          const channelsData = await channelsRes.json();
-          const channels = channelsData.data?.channels || [];
-          
-          // Match the requested platform, or post to all if 'all' or 'buffer' is specified
-          let targetChannels = channels;
-          if (normalizedPlatform !== 'all' && normalizedPlatform !== 'buffer') {
-            // Map 'x' to 'twitter' for Buffer
-            const searchService = normalizedPlatform === 'x' ? 'twitter' : normalizedPlatform;
-            targetChannels = channels.filter((c: any) => c.service.toLowerCase() === searchService);
-          }
-          
-          if (targetChannels.length === 0) {
-            // If the specific platform isn't found in Buffer, fallback to posting to all available channels
-            targetChannels = channels;
-          }
-
-          if (targetChannels.length === 0) {
-            throw new Error(`No connected Buffer channels found.`);
-          }
-
-          // 3. Post to channels
           const content = inputData.content || node.data.message || 'Hello from Social Workflow!';
           
-          const results = [];
-          for (const channel of targetChannels) {
-            const postRes = await fetch('https://api.buffer.com', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bufferToken}` },
-              body: JSON.stringify({
-                query: `mutation CreatePost($input: CreatePostInput!) {
-                  createPost(input: $input) {
-                    __typename
-                  }
-                }`,
-                variables: {
-                  input: {
-                    channelId: channel.id,
-                    text: content,
-                    mode: "shareNow",
-                    needsApproval: false,
-                    schedulingType: "automatic",
-                    assets: []
-                  }
-                }
-              })
-            });
-            const postData = await postRes.json();
-            if (postData.errors) {
-              throw new Error(`Buffer API Error for ${channel.service}: ${postData.errors[0].message}`);
-            }
-            results.push({ channel: channel.service, result: postData.data });
+          const response = await fetch(`${functionsUrl}/bufferPost`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              platform: normalizedPlatform,
+              content: content
+            })
+          });
+          
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Buffer Cloud Function failed with status ${response.status}`);
           }
           
-          output = { message: `Posted via Buffer to ${targetChannels.length} channels`, results };
+          output = await response.json();
         } else if (normalizedPlatform === 'gmail') {
           const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
           let endpoint = '/api/gmail/draft';
