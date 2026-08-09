@@ -57,6 +57,18 @@ const router = createBrowserRouter([
         element: <IntegrationsPage />,
       },
       {
+        path: 'calendar',
+        element: <ContentCalendarPage />,
+      },
+      {
+        path: 'funnel',
+        element: <FunnelPage />,
+      },
+      {
+        path: 'spy',
+        element: <CompetitorSpyPage />,
+      },
+      {
         path: 'settings',
         element: <SettingsPage />,
       },
