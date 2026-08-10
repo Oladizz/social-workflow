@@ -4,7 +4,6 @@ import { openaiPiece } from './openai';
 import { claudePiece } from './claude';
 import { aiUtilsPiece } from './ai-utils';
 import { lumaPiece } from './luma';
-import { youtubePiece } from './youtube';
 import { createPiece, createAction } from '../framework';
 import axios from 'axios';
 import TelegramBot from 'node-telegram-bot-api';
@@ -416,7 +415,6 @@ export const pieces: Piece[] = [
   aiUtilsPiece,
   knowledgePiece,
   lumaPiece,
-  youtubePiece,
 ];
 
 export const getPiece = (name: string): Piece | undefined => pieces.find(p => p.name === name);

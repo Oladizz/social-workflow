@@ -217,7 +217,7 @@ export const executeNodeTask = onTaskDispatched(
         const normalizedPlatform = platform?.toLowerCase() || '';
         
         let originalPlatform = normalizedPlatform;
-        if (['twitter', 'x', 'linkedin', 'buffer', 'all'].includes(normalizedPlatform)) {
+        if (['twitter', 'x', 'linkedin', 'tiktok', 'buffer', 'all'].includes(normalizedPlatform)) {
           platform = 'buffer';
         }
 
