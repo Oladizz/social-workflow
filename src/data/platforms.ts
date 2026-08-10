@@ -143,6 +143,7 @@ export const PLATFORMS: Platform[] = [
     bgGradient: 'linear-gradient(135deg, #FF0000, #cc0000)',
     IconComponent: FaYoutube,
     actions: [
+      { id: 'upload', label: 'Upload Video', icon: '📤', description: 'Upload a video to YouTube' },
       { id: 'comment', label: 'Post Comment', icon: '💬', description: 'Comment on a video' },
       { id: 'like', label: 'Like Video', icon: '👍', description: 'Like a video' },
       { id: 'subscribe', label: 'Subscribe', icon: '🔔', description: 'Subscribe to a channel' },
