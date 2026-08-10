@@ -103,7 +103,7 @@ const bufferPiece = createPiece({
                   mode: "shareNow",
                   needsApproval: false,
                   schedulingType: "automatic",
-                  assets: []
+                  assets: context.propsValue.imageUrl ? [{ url: context.propsValue.imageUrl }] : []
                 }
               }
             },
