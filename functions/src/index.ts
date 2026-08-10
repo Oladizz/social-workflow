@@ -384,37 +384,12 @@ export const executeNodeTask = onTaskDispatched(
       }
 
       // ═══════════════════════════════════════════════════════════════════════
-      // CODE NODE — Execute user JavaScript in a sandboxed Function
+      // CODE NODE — Disabled for Security
       // ═══════════════════════════════════════════════════════════════════════
       else if (nodeType === 'codeNode') {
-        const code = resolvedData.code || resolvedData.script || '';
-        console.log(`[EXEC] Code: executing ${code.length} chars of JS`);
-
-        try {
-          // Create a sandboxed function with access to payload and utility helpers
-          const sandbox = new Function('payload', 'console', `
-            "use strict";
-            const inputs = payload;
-            ${code}
-          `);
-          const logs: string[] = [];
-          const sandboxConsole = {
-            log: (...args: any[]) => logs.push(args.map(String).join(' ')),
-            warn: (...args: any[]) => logs.push('[WARN] ' + args.map(String).join(' ')),
-            error: (...args: any[]) => logs.push('[ERROR] ' + args.map(String).join(' ')),
-          };
-          const result = sandbox(nextPayload, sandboxConsole);
-          // If the code returns a value, merge it into payload
-          if (result && typeof result === 'object') {
-            Object.assign(nextPayload, result);
-          }
-          nextPayload[nodeId] = { result, logs };
-          await logStep(executionId, nodeId, nodeType, 'success', { code: code.slice(0, 200) }, { result, logs });
-        } catch (codeError: any) {
-          console.error(`[EXEC] Code execution error:`, codeError.message);
-          nextPayload[nodeId] = { error: codeError.message };
-          await logStep(executionId, nodeId, nodeType, 'error', { code: code.slice(0, 200) }, null, codeError.message);
-        }
+        console.error(`[EXEC] Code: CodeNode execution is disabled for security reasons.`);
+        nextPayload[nodeId] = { error: 'Code execution is disabled for security reasons to prevent Remote Code Execution (RCE). Please use logic nodes instead.' };
+        await logStep(executionId, nodeId, nodeType, 'error', null, null, 'Code execution is disabled to prevent RCE.');
       }
 
       // ═══════════════════════════════════════════════════════════════════════
@@ -626,13 +601,17 @@ export const webhookTrigger = onRequest({ cors: true, maxInstances: 10 }, async 
   }
 });
 
+// Define secrets using Firebase Secret Manager
+import { defineSecret } from 'firebase-functions/params';
+const bufferApiKey = defineSecret('BUFFER_API_KEY');
+
 // ─── Buffer API Integration ──────────────────────────────────────────────────
-export const bufferPost = onRequest({ cors: true }, async (req, res) => {
+export const bufferPost = onRequest({ cors: true, secrets: [bufferApiKey] }, async (req, res) => {
   try {
     const { platform, content } = req.body;
     
-    // Securely use the API key from environment, with fallback provided by user
-    const bufferToken = process.env.BUFFER_API_KEY || 'N5YGSt1hQeD8ektOYIKzWMmZgl7XBy7N3-lqjoAfJd2';
+    // Securely use the API key from Google Cloud Secret Manager
+    const bufferToken = bufferApiKey.value();
     
     // 1. Get organization ID
     const orgRes = await axios.post('https://api.buffer.com', 
