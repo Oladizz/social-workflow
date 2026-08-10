@@ -455,7 +455,7 @@ export default function PropertiesSidebar({ isDebugMode = false }: { isDebugMode
           <SectionHeader icon={MessageSquare} label="Content" />
           <ExpressionTextarea label="Manual content (optional)" placeholder="Leave empty to use AI-generated content, or type custom content..." value={data.message} onChange={(v: string) => handle('message', v)} currentNodeId={id} nodes={nodes} />
           <div style={{ marginTop: '12px' }}>
-            <ExpressionInput label="Image URL (optional)" placeholder="https://example.com/image.jpg or {{nodeId.url}}" value={data.imageUrl} onChange={(v: string) => handle('imageUrl', v)} currentNodeId={id} nodes={nodes} />
+            <ExpressionInput label="Media URL (Image/Video)" placeholder="https://example.com/media.mp4 or {{nodeId.url}}" value={data.mediaUrl || data.imageUrl} onChange={(v: string) => { handle('mediaUrl', v); handle('imageUrl', v); }} currentNodeId={id} nodes={nodes} />
           </div>
         </div>
       </>
