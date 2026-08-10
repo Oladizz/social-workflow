@@ -4,6 +4,8 @@ import { Settings, Key, MessageSquare, Sparkles, Globe, Rss, Zap, Database, Chec
 import { useExecutionStore } from '../store/useExecutionStore';
 import { getPlatformById } from '../data/platforms';
 import { TRIGGER_TYPES } from './nodes/TriggerNode';
+import { storage } from '../firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const insertAtCursor = (inputEl: HTMLInputElement | HTMLTextAreaElement | null, textToInsert: string, currentValue: string, onChange: (v: string) => void) => {
   if (!inputEl) {
@@ -89,6 +91,55 @@ function ExpressionTextarea({ label, value, onChange, placeholder, currentNodeId
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function MediaUploadButton({ onUploadSuccess }: { onUploadSuccess: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setUploading(true);
+
+    try {
+      // Create a unique filename in the uploads bucket
+      const fileExt = file.name.split('.').pop();
+      const uniqueName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const storageRef = ref(storage, `uploads/${uniqueName}`);
+
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      
+      uploadTask.on('state_changed', 
+        () => {}, // Progress updates (could add a progress bar later)
+        (error) => {
+          console.error("Upload failed", error);
+          setUploading(false);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          onUploadSuccess(downloadURL);
+          setUploading(false);
+        }
+      );
+    } catch (error) {
+      console.error("Error setting up upload:", error);
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: '8px' }}>
+      <label style={{ 
+        display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+        padding: '6px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '6px', fontSize: '0.75rem', color: uploading ? 'rgba(255,255,255,0.5)' : '#fff',
+        transition: 'all 0.2s ease'
+      }}>
+        {uploading ? 'Uploading...' : '📤 Upload File from Computer'}
+        <input type="file" accept="image/*,video/*" onChange={handleFileChange} style={{ display: 'none' }} disabled={uploading} />
+      </label>
     </div>
   );
 }
@@ -456,6 +507,7 @@ export default function PropertiesSidebar({ isDebugMode = false }: { isDebugMode
           <ExpressionTextarea label="Manual content (optional)" placeholder="Leave empty to use AI-generated content, or type custom content..." value={data.message} onChange={(v: string) => handle('message', v)} currentNodeId={id} nodes={nodes} />
           <div style={{ marginTop: '12px' }}>
             <ExpressionInput label="Media URL (Image/Video)" placeholder="https://example.com/media.mp4 or {{nodeId.url}}" value={data.mediaUrl || data.imageUrl} onChange={(v: string) => { handle('mediaUrl', v); handle('imageUrl', v); }} currentNodeId={id} nodes={nodes} />
+            <MediaUploadButton onUploadSuccess={(url) => { handle('mediaUrl', url); handle('imageUrl', url); }} />
           </div>
         </div>
       </>
