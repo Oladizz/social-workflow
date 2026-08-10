@@ -187,6 +187,7 @@ export const executeNodeTask = onTaskDispatched(
             vision: 'vision_analyze',
             transcribe: 'transcribe_audio',
             tts: 'text_to_speech',
+            video: 'generate_video',
           };
           actionName = taskActionMap[aiTask] || (provider === 'gemini' ? 'generate_content' : 'generate_text');
         }

@@ -325,10 +325,13 @@ export default function PropertiesSidebar({ isDebugMode = false }: { isDebugMode
         { value: 'claude-opus-4-20250514', label: '🔬 Claude 4 Opus' },
         { value: 'claude-3-5-haiku-20241022', label: '⚡ Claude 3.5 Haiku' },
       ],
+      luma: [
+        { value: 'dream-machine-v1', label: '🎥 Dream Machine (Video)' }
+      ]
     };
 
-    const apiKeyLabel = provider === 'openai' ? 'OpenAI API Key' : provider === 'claude' ? 'Anthropic API Key' : 'Gemini API Key';
-    const apiKeyPlaceholder = provider === 'openai' ? 'sk-...' : provider === 'claude' ? 'sk-ant-...' : 'AIza...';
+    const apiKeyLabel = provider === 'openai' ? 'OpenAI API Key' : provider === 'claude' ? 'Anthropic API Key' : provider === 'luma' ? 'Luma API Key' : 'Gemini API Key';
+    const apiKeyPlaceholder = provider === 'openai' ? 'sk-...' : provider === 'claude' ? 'sk-ant-...' : provider === 'luma' ? 'luma-...' : 'AIza...';
 
     return (
       <>
@@ -340,6 +343,7 @@ export default function PropertiesSidebar({ isDebugMode = false }: { isDebugMode
               { id: 'gemini', label: '✨ Gemini', color: '#F5A623' },
               { id: 'openai', label: '🤖 OpenAI', color: '#10b981' },
               { id: 'claude', label: '🧠 Claude', color: '#f97316' },
+              { id: 'luma', label: '🎥 Luma', color: '#8b5cf6' },
             ].map(p => (
               <button key={p.id} onClick={() => { handle('provider', p.id); handle('model', modelOptions[p.id][0].value); }} style={{
                 padding: '6px 4px', borderRadius: '7px', fontSize: '0.7rem', fontFamily: 'inherit', fontWeight: 500, cursor: 'pointer',
@@ -374,6 +378,9 @@ export default function PropertiesSidebar({ isDebugMode = false }: { isDebugMode
               { value: 'transcribe', label: '🎤 Transcribe Audio (Whisper)' },
               { value: 'tts', label: '🔊 Text to Speech' },
             ] : []),
+            ...(provider === 'luma' ? [
+              { value: 'video', label: '🎥 Generate Video (Text-to-Video)' }
+            ] : []),
           ]} />
         </div>
 
@@ -402,6 +409,13 @@ export default function PropertiesSidebar({ isDebugMode = false }: { isDebugMode
           <div style={{ marginBottom: '20px' }}>
             <ExpressionInput label="Image URL" placeholder="https://example.com/image.jpg" value={data.imageUrl} onChange={(v: string) => handle('imageUrl', v)} currentNodeId={id} nodes={nodes} />
             <ExpressionTextarea label="Prompt" placeholder="Describe this image..." value={data.prompt} onChange={(v: string) => handle('prompt', v)} currentNodeId={id} nodes={nodes} />
+          </div>
+        )}
+
+        {aiTask === 'video' && (
+          <div style={{ marginBottom: '20px' }}>
+            <ExpressionTextarea label="Video Prompt" placeholder="A cinematic drone shot of a futuristic city at sunset..." value={data.prompt} onChange={(v: string) => handle('prompt', v)} currentNodeId={id} nodes={nodes} style={{ height: '80px' }} />
+            <ExpressionInput label="Image URL (Optional Image-to-Video)" placeholder="https://example.com/start-frame.jpg or {{nodeId.imageUrl}}" value={data.imageUrl} onChange={(v: string) => handle('imageUrl', v)} currentNodeId={id} nodes={nodes} />
           </div>
         )}
 
